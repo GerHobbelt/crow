@@ -2,13 +2,6 @@
 
 #include <sstream>
 
-class ExampleLogHandler : public crow::ILogHandler {
-    public:
-        void log(std::string /*message*/, crow::LogLevel /*level*/) override {
-//            cerr << "ExampleLogHandler -> " << message;
-        }
-};
-
 struct ExampleMiddleware 
 {
     std::string message;
@@ -162,10 +155,6 @@ int main()
     ([]{
         return std::string(512*1024, ' ');
     });
-
-    // enables all log
-    app.loglevel(crow::LogLevel::DEBUG);
-    //crow::logger::setHandler(std::make_shared<ExampleLogHandler>());
 
     app.port(18080)
         .multithreaded()
