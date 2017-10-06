@@ -1,4 +1,4 @@
-#include "../amalgamate/crow_all.h"
+#include "crow.h"
 
 namespace crow
 {
