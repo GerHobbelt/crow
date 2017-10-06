@@ -2,21 +2,21 @@ cmake_minimum_required(VERSION 2.8)
 project (crow_examples)
 
 if (MSVC)
-	add_executable(example_vs example_vs.cpp)
+	add_executable(example_vs example_vs.cpp logging.cpp)
 	target_link_libraries(example_vs ${Boost_LIBRARIES})
 	target_link_libraries(example_vs ${CMAKE_THREAD_LIBS_INIT})
 else ()
-	add_executable(helloworld helloworld.cpp)
+	add_executable(helloworld helloworld.cpp logging.cpp)
 	target_link_libraries(helloworld ${Boost_LIBRARIES})
 	target_link_libraries(helloworld ${CMAKE_THREAD_LIBS_INIT})
 
 if (OPENSSL_FOUND)
-	add_executable(example_ssl ssl/example_ssl.cpp)
+	add_executable(example_ssl ssl/example_ssl.cpp logging.cpp)
 	target_link_libraries(example_ssl ${Boost_LIBRARIES})
 	target_link_libraries(example_ssl ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
 endif()
 
-add_executable(example_websocket websocket/example_ws.cpp)
+add_executable(example_websocket websocket/example_ws.cpp logging.cpp)
 target_link_libraries(example_websocket ${Boost_LIBRARIES})
 target_link_libraries(example_websocket ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
 add_custom_command(OUTPUT ws.html
@@ -26,7 +26,7 @@ add_custom_command(OUTPUT ws.html
 )
 add_custom_target(example_ws_copy ALL DEPENDS ws.html)
 
-add_executable(example example.cpp)
+add_executable(example example.cpp logging.cpp)
 #target_link_libraries(example crow)
 target_link_libraries(example ${Boost_LIBRARIES})
 target_link_libraries(example ${CMAKE_THREAD_LIBS_INIT})
@@ -35,7 +35,7 @@ if (Tcmalloc_FOUND)
 	target_link_libraries(example ${Tcmalloc_LIBRARIES})
 endif(Tcmalloc_FOUND)
 
-add_executable(example_with_all example_with_all.cpp)
+add_executable(example_with_all example_with_all.cpp logging.cpp)
 add_dependencies(example_with_all amalgamation)
 #target_link_libraries(example crow)
 target_link_libraries(example_with_all ${Boost_LIBRARIES})
@@ -48,7 +48,7 @@ add_custom_command(OUTPUT example_test.py
 )
 add_custom_target(example_copy ALL DEPENDS example_test.py)
 
-add_executable(example_chat example_chat.cpp)
+add_executable(example_chat example_chat.cpp logging.cpp)
 target_link_libraries(example_chat ${Boost_LIBRARIES})
 target_link_libraries(example_chat ${CMAKE_THREAD_LIBS_INIT})
 add_custom_command(OUTPUT example_chat.html
