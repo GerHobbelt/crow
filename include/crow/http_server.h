@@ -28,7 +28,6 @@ namespace crow
     public:
     Server(Handler* handler, std::string bindaddr, uint16_t port, std::tuple<Middlewares...>* middlewares = nullptr, uint16_t concurrency = 1, typename Adaptor::context* adaptor_ctx = nullptr)
             : acceptor_(io_service_, tcp::endpoint(boost::asio::ip::address::from_string(bindaddr), port)),
-            signals_(io_service_, SIGINT, SIGTERM),
             tick_timer_(io_service_),
             handler_(handler),
             concurrency_(concurrency),
@@ -150,12 +149,6 @@ namespace crow
 
             CROW_LOG_INFO << server_name_ << " server is running at " << bindaddr_ <<":" << port_
                           << " using " << concurrency_ << " threads";
-            CROW_LOG_INFO << "Call `app.loglevel(crow::LogLevel::Warning)` to hide Info level logs.";
-
-            signals_.async_wait(
-                [&](const boost::system::error_code& /*error*/, int /*signal_number*/){
-                    stop();
-                });
 
             while(concurrency_ != init_count)
                 std::this_thread::yield();
@@ -216,7 +209,6 @@ namespace crow
         std::vector<detail::dumb_timer_queue*> timer_queue_pool_;
         std::vector<std::function<std::string()>> get_cached_date_str_pool_;
         tcp::acceptor acceptor_;
-        boost::asio::signal_set signals_;
         boost::asio::deadline_timer tick_timer_;
 
         Handler* handler_;
