@@ -18,7 +18,10 @@ endif()
 
 add_executable(example_websocket websocket/example_ws.cpp logging.cpp)
 target_link_libraries(example_websocket ${Boost_LIBRARIES})
-target_link_libraries(example_websocket ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
+target_link_libraries(example_websocket ${CMAKE_THREAD_LIBS_INIT})
+if(OPENSSL_FOUND)
+	target_link_libraries(example_websocket ${OPENSSL_LIBRARIES})
+endif()
 add_custom_command(OUTPUT ws.html
     COMMAND ${CMAKE_COMMAND} -E
     copy ${PROJECT_SOURCE_DIR}/websocket/templates/ws.html ${CMAKE_CURRENT_BINARY_DIR}/templates/ws.html
