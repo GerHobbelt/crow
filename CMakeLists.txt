@@ -19,17 +19,15 @@ endif()
 add_definitions(-DBOOST_ALL_DYN_LINK)
 if (MSVC)
 	set(Boost_USE_STATIC_LIBS "On")
-	find_package(Boost 1.52 COMPONENTS log system thread regex REQUIRED)
+	find_package(Boost 1.52 COMPONENTS system REQUIRED)
 else()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -pedantic -Wextra")
-	find_package(Boost 1.52 COMPONENTS log system thread REQUIRED)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++14 -pedantic -Wextra")
+	find_package(Boost 1.52 COMPONENTS system REQUIRED)
 endif()
 
 include_directories(${Boost_INCLUDE_DIR})
 
-set(PROJECT_INCLUDE_DIR
-    ${PROJECT_SOURCE_DIR}/include
-)
+set(PROJECT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 
 include_directories("${PROJECT_INCLUDE_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}")

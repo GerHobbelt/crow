@@ -3,7 +3,7 @@ project (crow_test)
  
 
 set(TEST_SRCS
-unittest.cpp logging.cpp
+unittest.cpp
 )
 
 add_executable(unittest ${TEST_SRCS})
