@@ -43,10 +43,10 @@ int main()
 
     app.get_middleware<ExampleMiddleware>().setMessage("hello");
 
-    app.route_dynamic("/")
-    ([]{
-        return "Hello World!";
-    });
+    //app.route_dynamic("/")
+    //([]{
+    //    return "Hello World!";
+    //});
 
     app.route_dynamic("/about")
     ([](){
@@ -84,13 +84,6 @@ int main()
         res.end();
     });
 
-    // Compile error with message "Handler type is mismatched with URL paramters"
-    //CROW_ROUTE(app,"/another/<int>")
-    //([](int a, int b){
-        //return crow::response(500);
-    //});
-
-    // more json example
     app.route_dynamic("/add_json")
         .methods(crow::HTTPMethod::Post)
     ([](const crow::request& req){

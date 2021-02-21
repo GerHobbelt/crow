@@ -1,5 +1,5 @@
 #pragma once
-
+// clang-format off
 #include <cstdint>
 #include <utility>
 #include <tuple>
@@ -168,20 +168,47 @@ namespace crow
                 }
             };
 
-            template <typename Func, typename ... ArgsWrapped>
+            template <typename Func, typename... ArgsWrapped>
             struct Wrapped
             {
+              template <typename... Args>
+              void set_(
+                  Func f,
+                  typename std::enable_if<
+                      std::is_same<typename std::tuple_element< 0, std::tuple<Args..., void>>::type, response&>::value
+                &&   !std::is_convertible<typename std::result_of<Func(Args...)>::type, response>::value
+                ,     int>::type = 0)
+              {
+                handler_ = req_handler_wrapper<Args...>(std::move(f));
+                //handler_ = 
+                //    [f = std::move(f)]
+                //    (const request& req, response& res, Args... args){
+                //         res = response(f(res, args...));
+                //         res.end();
+                //    });*/
+              }
+
+              //template <typename... Args>
+              //void set_(
+              //    Func f,
+              //    typename std::enable_if<
+              //         std::is_same<typename std::tuple_element<0, std::tuple<Args..., void>>::type, const response&>::value
+              //    &&   std::is_convertible<typename std::result_of<Func(Args...)>::type, response>::value
+              //    ,
+              //    int>::type = 0)
+              //{
+              //  handler_ = [f = std::move(f)](const request&, response& res, Args... args) {
+              //        res = response(f(args...));
+              //        res.end();
+              //  };
+              //}
+
+
                 template <typename ... Args>
                 void set_(Func f, typename std::enable_if<
                     !std::is_same<typename std::tuple_element<0, std::tuple<Args..., void>>::type, const request&>::value
                 , int>::type = 0)
                 {
-#ifdef _MSC_VER
-                    static_assert(
-                        std::is_convertible<typename std::result_of<Func(Args...)>::type,
-                                crow::response>::value,
-                        "supplied callback must return type that can be cast to crow::response and cannot be void");
-#endif
                     handler_ = (
 #ifdef CROW_CAN_USE_CPP14
                         [f = std::move(f)]
@@ -194,84 +221,87 @@ namespace crow
                         });
                 }
 
-                template <typename Req, typename ... Args>
-                struct req_handler_wrapper
+              template <typename Req, typename... Args>
+              struct req_handler_wrapper
+              {
+                req_handler_wrapper(Func f) : f(std::move(f)) {}
+
+                void operator()(const request& req, response& res, Args... args)
                 {
-                    req_handler_wrapper(Func f)
-                        : f(std::move(f))
-                    {
-                    }
-
-                    void operator()(const request& req, response& res, Args... args)
-                    {
-                        res = response(f(req, args...));
-                        res.end();
-                    }
-
-                    Func f;
-                };
-
-                template <typename ... Args>
-                void set_(Func f, typename std::enable_if<
-                        std::is_same<typename std::tuple_element<0, std::tuple<Args..., void>>::type, const request&>::value &&
-                        !std::is_same<typename std::tuple_element<1, std::tuple<Args..., void, void>>::type, response&>::value
-                        , int>::type = 0)
-                {
-                    handler_ = req_handler_wrapper<Args...>(std::move(f));
-                    /*handler_ = (
-                        [f = std::move(f)]
-                        (const request& req, response& res, Args... args){
-                             res = response(f(req, args...));
-                             res.end();
-                        });*/
+                  res = response(f(req, args...));
+                  res.end();
                 }
 
-                template <typename ... Args>
-                void set_(Func f, typename std::enable_if<
-                        std::is_same<typename std::tuple_element<0, std::tuple<Args..., void>>::type, const request&>::value &&
-                        std::is_same<typename std::tuple_element<1, std::tuple<Args..., void, void>>::type, response&>::value
-                        , int>::type = 0)
-                {
-                    handler_ = std::move(f);
-                }
+                Func f;
+              };
 
-                template <typename ... Args>
-                struct handler_type_helper
-                {
-                    using type = std::function<void(const crow::request&, crow::response&, Args...)>;
-                    using args_type = black_magic::S<typename black_magic::promote_t<Args>...>;
-                };
+              template <typename... Args>
+              void set_(
+                  Func f,
+                  typename std::enable_if<
+                      std::is_same<typename std::tuple_element< 0, std::tuple<Args..., void>>::type,       const request&>::value 
+				          && !std::is_same<typename std::tuple_element< 1, std::tuple<Args..., void, void>>::type, response&>::value,
+				              int>::type = 0)
+              {
+                handler_ = req_handler_wrapper<Args...>(std::move(f));
+                /*handler_ = (
+                    [f = std::move(f)]
+                    (const request& req, response& res, Args... args){
+                         res = response(f(req, args...));
+                         res.end();
+                    });*/
+              }
 
-                template <typename ... Args>
-                struct handler_type_helper<const request&, Args...>
-                {
-                    using type = std::function<void(const crow::request&, crow::response&, Args...)>;
-                    using args_type = black_magic::S<typename black_magic::promote_t<Args>...>;
-                };
+              template <typename... Args>
+              void set_(
+                  Func f,
+                  typename std::enable_if<
+                      std::is_same<typename std::tuple_element< 0, std::tuple<Args..., void>>::type, const request&>::value 
+				          &&  std::is_same<typename std::tuple_element< 1, std::tuple<Args..., void, void>>::type, response&>::value,
+                      int>::type = 0)
+              {
+                handler_ = std::move(f);
+              }
 
-                template <typename ... Args>
-                struct handler_type_helper<const request&, response&, Args...>
-                {
-                    using type = std::function<void(const crow::request&, crow::response&, Args...)>;
-                    using args_type = black_magic::S<typename black_magic::promote_t<Args>...>;
-                };
+              template <typename... Args>
+              struct handler_type_helper
+              {
+                using type = std::function<void(const crow::request&, crow::response&, Args...)>;
+                using args_type =
+                    black_magic::S<typename black_magic::promote_t<Args>...>;
+              };
 
-                typename handler_type_helper<ArgsWrapped...>::type handler_;
+              template <typename... Args>
+              struct handler_type_helper<const request&, Args...>
+              {
+                using type = std::function<void(const crow::request&, crow::response&, Args...)>;
+                using args_type =
+                    black_magic::S<typename black_magic::promote_t<Args>...>;
+              };
 
-                void operator()(const request& req, response& res, const routing_params& params)
-                {
-                    detail::routing_handler_call_helper::call<
-                        detail::routing_handler_call_helper::call_params<
-                            decltype(handler_)>,
-                        0, 0, 0, 0,
-                        typename handler_type_helper<ArgsWrapped...>::args_type,
-                        black_magic::S<>
-                    >()(
-                        detail::routing_handler_call_helper::call_params<
-                            decltype(handler_)>
-                        {handler_, params, req, res}
-                   );
-                }
+              template <typename... Args>
+              struct handler_type_helper<const request&, response&, Args...>
+              {
+                using type = std::function<void(const crow::request&,
+                                                crow::response&, Args...)>;
+                using args_type =
+                    black_magic::S<typename black_magic::promote_t<Args>...>;
+              };
+
+              typename handler_type_helper<ArgsWrapped...>::type handler_;
+
+              void operator()(const request& req, response& res,
+                              const routing_params& params)
+              {
+                detail::routing_handler_call_helper::call<
+                    detail::routing_handler_call_helper::call_params<decltype(
+                        handler_)>,
+                    0, 0, 0, 0,
+                    typename handler_type_helper<ArgsWrapped...>::args_type,
+                    black_magic::S<>>()(
+                    detail::routing_handler_call_helper::call_params<decltype(
+                        handler_)>{handler_, params, req, res});
+              }
             };
 
         }

@@ -1148,10 +1148,10 @@ TEST_CASE("route_dynamic")
     x = 4;
     return "";
   });
-  app.route_dynamic("/set5")([&](const request&, response& res) {
-    x = 5;
-    res.end();
-  });
+  //app.route_dynamic("/set5")([&](const request&, response& res) {
+  //  x = 5;
+  //  res.end();
+  //});
 
   app.route_dynamic("/set_int/<int>")([&](int y) {
     x = y;
