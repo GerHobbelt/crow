@@ -1,3 +1,4 @@
+#define CROW_MAIN
 #include "crow.h"
 
 #include <sstream>
@@ -13,12 +14,11 @@ struct ExampleMiddleware
 {
     std::string message;
 
-    ExampleMiddleware() 
+    ExampleMiddleware() : message("foo")
     {
-        message = "foo";
     }
 
-    void setMessage(std::string newMsg)
+    void setMessage(const std::string &newMsg)
     {
         message = newMsg;
     }
@@ -78,7 +78,7 @@ int main()
     });
 
     app.route_dynamic("/add/<int>/<int>")
-    ([](const crow::request& req, crow::response& res, int a, int b){
+    ([](crow::response& res, int a, int b){
         std::ostringstream os;
         os << a+b;
         res.write(os.str());
@@ -93,7 +93,7 @@ int main()
 
     // more json example
     app.route_dynamic("/add_json")
-        .methods(crow::HTTPMethod::POST)
+        .methods(crow::HTTPMethod::Post)
     ([](const crow::request& req){
         auto x = crow::json::load(req.body);
         if (!x)
@@ -122,7 +122,7 @@ int main()
     });    
 
     // ignore all log
-    crow::logger::setLogLevel(crow::LogLevel::DEBUG);
+    crow::logger::setLogLevel(crow::LogLevel::Debug);
     //crow::logger::setHandler(std::make_shared<ExampleLogHandler>());
 
     app.port(18080)

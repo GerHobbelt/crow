@@ -16,6 +16,7 @@
 #include "crow/dumb_timer_queue.h"
 #include "crow/middleware_context.h"
 #include "crow/socket_adaptors.h"
+#include "crow/compression.h"
 
 namespace crow
 {
@@ -178,9 +179,12 @@ namespace crow
 #ifdef CROW_ENABLE_DEBUG
     static std::atomic<int> connectionCount;
 #endif
+
+    /// An HTTP connection.
     template <typename Adaptor, typename Handler, typename ... Middlewares>
     class Connection
     {
+        friend struct crow::response;
     public:
         Connection(
             boost::asio::io_service& io_service, 
@@ -215,6 +219,7 @@ namespace crow
 #endif
         }
 
+        /// The TCP socket on top of which the connection is established.
         decltype(std::declval<Adaptor>().raw_socket())& socket()
         {
             return adaptor_.raw_socket();
@@ -256,6 +261,8 @@ namespace crow
 
             req_ = std::move(parser_.to_request());
             request& req = req_;
+
+            req.remoteIpAddress = adaptor_.remote_endpoint().address().to_string();
 
             if (parser_.check_version(1, 0))
             {
@@ -310,7 +317,7 @@ namespace crow
                 res.is_alive_helper_ = [this]()->bool{ return adaptor_.is_open(); };
 
                 ctx_ = detail::context<Middlewares...>();
-                req.middleware_context = (void*)&ctx_;
+                req.middleware_context = static_cast<void*>(&ctx_);
                 req.io_service = &adaptor_.get_io_service();
                 detail::middleware_call_helper<0, decltype(ctx_), decltype(*middlewares_), Middlewares...>(*middlewares_, req, res, ctx_);
 
@@ -333,6 +340,7 @@ namespace crow
             }
         }
 
+        /// Call the after handle middleware and send the write the response to the connection.
         void complete_request()
         {
             CROW_LOG_INFO << "Response: " << this << ' ' << req_.raw_url << ' ' << res.code << ' ' << close_connection_;
@@ -343,15 +351,66 @@ namespace crow
 
                 // call all after_handler of middlewares
                 detail::after_handlers_call_helper<
-                    ((int)sizeof...(Middlewares)-1),
+                    (static_cast<int>(sizeof...(Middlewares))-1),
                     decltype(ctx_),
-                    decltype(*middlewares_)> 
+                    decltype(*middlewares_)>
                 (*middlewares_, ctx_, req_, res);
             }
 
+            std::string accept_encoding = req_.get_header_value("Accept-Encoding");
+            if (!accept_encoding.empty() && res.compressed)
+            {
+                switch (handler_->compression_algorithm())
+                {
+                    case compression::DEFLATE:
+                        if (accept_encoding.find("deflate") != std::string::npos)
+                        {
+                            res.body = compression::compress_string(res.body, compression::algorithm::DEFLATE);
+                            res.set_header("Content-Encoding", "deflate");
+                        }
+                        break;
+                    case compression::GZIP:
+                        if (accept_encoding.find("gzip") != std::string::npos)
+                        {
+                            res.body = compression::compress_string(res.body, compression::algorithm::GZIP);
+                            res.set_header("Content-Encoding", "gzip");
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            //if there is a redirection with a partial URL, treat the URL as a route.
+            std::string location = res.get_header_value("Location");
+            if (!location.empty() && location.find("://", 0) == std::string::npos)
+            {
+                #ifdef CROW_ENABLE_SSL
+                location.insert(0, "https://" + req_.get_header_value("Host"));
+                #else
+                location.insert(0, "http://" + req_.get_header_value("Host"));
+                #endif
+                res.set_header("location", location);
+            }
+
+           prepare_buffers();
+
+            if (res.is_static_type())
+            {
+                do_write_static();
+            }else {
+                do_write_general();
+            }
+
+        }
+
+    private:
+
+        void prepare_buffers()
+        {
             //auto self = this->shared_from_this();
             res.complete_request_handler_ = nullptr;
-            
+
             if (!adaptor_.is_open())
             {
                 //CROW_LOG_DEBUG << this << " delete (socket is closed) " << is_reading << ' ' << is_writing;
@@ -367,13 +426,17 @@ namespace crow
 
                 {300, "HTTP/1.1 300 Multiple Choices\r\n"},
                 {301, "HTTP/1.1 301 Moved Permanently\r\n"},
-                {302, "HTTP/1.1 302 Moved Temporarily\r\n"},
+                {302, "HTTP/1.1 302 Found\r\n"},
+                {303, "HTTP/1.1 303 See Other\r\n"},
                 {304, "HTTP/1.1 304 Not Modified\r\n"},
+                {307, "HTTP/1.1 307 Temporary Redirect\r\n"},
+                {308, "HTTP/1.1 308 Permanent Redirect\r\n"},
 
                 {400, "HTTP/1.1 400 Bad Request\r\n"},
                 {401, "HTTP/1.1 401 Unauthorized\r\n"},
                 {403, "HTTP/1.1 403 Forbidden\r\n"},
                 {404, "HTTP/1.1 404 Not Found\r\n"},
+                {405, "HTTP/1.1 405 Method Not Allowed\r\n"},
                 {413, "HTTP/1.1 413 Payload Too Large\r\n"},
                 {422, "HTTP/1.1 422 Unprocessable Entity\r\n"},
                 {429, "HTTP/1.1 429 Too Many Requests\r\n"},
@@ -389,11 +452,6 @@ namespace crow
 
             buffers_.clear();
             buffers_.reserve(4*(res.headers.size()+5)+3);
-
-            if (res.body.empty() && res.json_value.t() == json::type::Object)
-            {
-                res.body = json::dump(res.json_value);
-            }
 
             if (!statusCodes.count(res.code))
                 res.code = 500;
@@ -414,7 +472,7 @@ namespace crow
 
             }
 
-            if (!res.headers.count("content-length"))
+            if (!res.manual_length_header && !res.headers.count("content-length"))
             {
                 content_length_ = std::to_string(res.body.size());
                 static std::string content_length_tag = "Content-Length: ";
@@ -445,20 +503,48 @@ namespace crow
             }
 
             buffers_.emplace_back(crlf.data(), crlf.size());
-            res_body_copy_.swap(res.body);
-            buffers_.emplace_back(res_body_copy_.data(), res_body_copy_.size());
+            
+        }
 
-            do_write();
+        void do_write_static()
+        {
+            is_writing = true;
+            boost::asio::write(adaptor_.socket(), buffers_);
+            res.do_stream_file(adaptor_);
 
-            if (need_to_start_read_after_complete_)
+            res.end();
+            res.clear();
+            buffers_.clear();
+        }
+
+        void do_write_general()
+        {
+            if (res.body.length() < res_stream_threshold_)
             {
-                need_to_start_read_after_complete_ = false;
-                start_deadline();
-                do_read();
+                res_body_copy_.swap(res.body);
+                buffers_.emplace_back(res_body_copy_.data(), res_body_copy_.size());
+
+                do_write();
+
+                if (need_to_start_read_after_complete_)
+                {
+                    need_to_start_read_after_complete_ = false;
+                    start_deadline();
+                    do_read();
+                }
+            }
+            else
+            {
+                is_writing = true;
+                boost::asio::write(adaptor_.socket(), buffers_);
+                res.do_stream_body(adaptor_);
+
+                res.end();
+                res.clear();
+                buffers_.clear();
             }
         }
 
-    private:
         void do_read()
         {
             //auto self = this->shared_from_this();
@@ -480,6 +566,7 @@ namespace crow
                     {
                         cancel_deadline_timer();
                         parser_.done();
+                        adaptor_.shutdown_read();
                         adaptor_.close();
                         is_reading = false;
                         CROW_LOG_DEBUG << this << " from read(1)";
@@ -520,6 +607,7 @@ namespace crow
                     {
                         if (close_connection_)
                         {
+                            adaptor_.shutdown_write();
                             adaptor_.close();
                             CROW_LOG_DEBUG << this << " from write(1)";
                             check_destroy();
@@ -559,6 +647,7 @@ namespace crow
                 {
                     return;
                 }
+                adaptor_.shutdown_readwrite();
                 adaptor_.close();
             });
             CROW_LOG_DEBUG << this << " timer added: " << timer_cancel_key_.first << ' ' << timer_cancel_key_.second;
@@ -569,6 +658,8 @@ namespace crow
         Handler* handler_;
 
         boost::array<char, 4096> buffer_;
+
+        const unsigned res_stream_threshold_ = 1048576;
 
         HTTPParser<Connection> parser_;
         request req_;

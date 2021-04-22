@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "crow/settings.h"
+#include "crow/returnable.h"
 
 #if defined(__GNUG__) || defined(__clang__)
 #define crow_json_likely(x) __builtin_expect(x, 1)
@@ -35,7 +36,7 @@ namespace crow
         inline void escape(const std::string& str, std::string& ret)
         {
             ret.reserve(ret.size() + str.size()+str.size()/4);
-            for(char c:str)
+            for(unsigned char c:str)
             {
                 switch(c)
                 {
@@ -47,7 +48,7 @@ namespace crow
                     case '\r': ret += "\\r"; break;
                     case '\t': ret += "\\t"; break;
                     default:
-                        if (0 <= c && c < 0x20)
+                        if (c < 0x20)
                         {
                             ret += "\\u00";
                             auto to_hex = [](char c)
@@ -108,7 +109,7 @@ namespace crow
 
         namespace detail 
         {
-
+            /// A read string implementation with comparison functionality.
             struct r_string 
                 : boost::less_than_comparable<r_string>,
                 boost::less_than_comparable<r_string, std::string>,
@@ -166,12 +167,12 @@ namespace crow
                 using iterator = const char*;
                 using const_iterator = const char*;
 
-                char* s_;
-                mutable char* e_;
+                char* s_; ///< Start.
+                mutable char* e_; ///< End.
                 uint8_t owned_{0};
                 friend std::ostream& operator << (std::ostream& os, const r_string& s)
                 {
-                    os << (std::string)s;
+                    os << static_cast<std::string>(s);
                     return os;
                 }
             private:
@@ -210,6 +211,11 @@ namespace crow
             }
         }
 
+        /// JSON read value.
+
+        ///
+        /// Value can mean any json value, including a JSON object.
+        /// Read means this class is used to primarily read strings into a JSON value.
         class rvalue
         {
             static const int cached_bit = 2;
@@ -286,9 +292,10 @@ namespace crow
 
             explicit operator int() const
             {
-                return (int)i();
+                return static_cast<int>(i());
             }
 
+            /// The type of the JSON value.
             type t() const
             {
 #ifndef CROW_JSON_NO_ERROR_CHECK
@@ -300,6 +307,7 @@ namespace crow
                 return t_;
             }
 
+            /// The number type of the JSON value.
             num_type nt() const
             {
 #ifndef CROW_JSON_NO_ERROR_CHECK
@@ -311,6 +319,7 @@ namespace crow
                 return nt_;
             }
 
+            /// The integer value.
             int64_t i() const
             {
 #ifndef CROW_JSON_NO_ERROR_CHECK
@@ -327,6 +336,7 @@ namespace crow
                 return boost::lexical_cast<int64_t>(start_, end_-start_);
             }
 
+            /// The unsigned integer value.
             uint64_t u() const
             {
 #ifndef CROW_JSON_NO_ERROR_CHECK
@@ -341,6 +351,7 @@ namespace crow
                 return boost::lexical_cast<uint64_t>(start_, end_-start_);
             }
 
+            /// The double precision floating-point number value.
             double d() const
             {
 #ifndef CROW_JSON_NO_ERROR_CHECK
@@ -350,6 +361,7 @@ namespace crow
                 return boost::lexical_cast<double>(start_, end_-start_);
             }
 
+            /// The boolean value.
             bool b() const
             {
 #ifndef CROW_JSON_NO_ERROR_CHECK
@@ -359,6 +371,18 @@ namespace crow
                 return t() == type::True;
             }
 
+            /// The string value.
+            detail::r_string s() const
+            {
+#ifndef CROW_JSON_NO_ERROR_CHECK
+                if (t() != type::String)
+                    throw std::runtime_error("value is not string");
+#endif
+                unescape();
+                return detail::r_string{start_, end_};
+            }
+
+            /// Convert escaped string character to their original form ("\\n" -> '\n').
             void unescape() const
             {
                 if (*(start_-1))
@@ -422,16 +446,6 @@ namespace crow
                     *end_ = 0;
                     *(start_-1) = 0;
                 }
-            }
-
-            detail::r_string s() const
-            {
-#ifndef CROW_JSON_NO_ERROR_CHECK
-                if (t() != type::String)
-                    throw std::runtime_error("value is not string");
-#endif
-                unescape();
-                return detail::r_string{start_, end_};
             }
 
             bool has(const char* str) const
@@ -508,7 +522,7 @@ namespace crow
 #ifndef CROW_JSON_NO_ERROR_CHECK
                 if (t() != type::List)
                     throw std::runtime_error("value is not a list");
-                if (index >= (int)lsize_ || index < 0)
+                if (index >= static_cast<int>(lsize_) || index < 0)
                     throw std::runtime_error("list out of bound");
 #endif
                 return l_[index];
@@ -615,7 +629,7 @@ namespace crow
                 lremain_ --;
             }
 
-            // determines num_type from the string
+            /// determines num_type from the string.
             void determine_num_type()
             {
                 if (t_ != type::Number)
@@ -891,7 +905,7 @@ namespace crow
                         switch(*data)
                         {
                             case '0':
-                                state = (NumberParsingState)"\2\2\7\3\4\6\6"[state];
+                                state = static_cast<NumberParsingState>("\2\2\7\3\4\6\6"[state]);
                                 /*if (state == NumberParsingState::Minus || state == NumberParsingState::AfterMinus)
                                 {
                                     state = NumberParsingState::ZeroFirst;
@@ -912,7 +926,7 @@ namespace crow
                             case '1': case '2': case '3': 
                             case '4': case '5': case '6': 
                             case '7': case '8': case '9':
-                                state = (NumberParsingState)"\3\3\7\3\4\6\6"[state];
+                                state = static_cast<NumberParsingState>("\3\3\7\3\4\6\6"[state]);
                                 while(*(data+1) >= '0' && *(data+1) <= '9') data++;
                                 /*if (state == NumberParsingState::Minus || state == NumberParsingState::AfterMinus)
                                 {
@@ -932,7 +946,7 @@ namespace crow
                                     return {};*/
                                 break;
                             case '.':
-                                state = (NumberParsingState)"\7\7\4\4\7\7\7"[state];
+                                state = static_cast<NumberParsingState>("\7\7\4\4\7\7\7"[state]);
                                 /*
                                 if (state == NumberParsingState::Digits || state == NumberParsingState::ZeroFirst)
                                 {
@@ -943,7 +957,7 @@ namespace crow
                                 */
                                 break;
                             case '-':
-                                state = (NumberParsingState)"\1\7\7\7\7\6\7"[state];
+                                state = static_cast<NumberParsingState>("\1\7\7\7\7\6\7"[state]);
                                 /*if (state == NumberParsingState::Minus)
                                 {
                                     state = NumberParsingState::AfterMinus;
@@ -956,7 +970,7 @@ namespace crow
                                     return {};*/
                                 break;
                             case '+':
-                                state = (NumberParsingState)"\7\7\7\7\7\6\7"[state];
+                                state = static_cast<NumberParsingState>("\7\7\7\7\7\6\7"[state]);
                                 /*if (state == NumberParsingState::E)
                                 {
                                     state = NumberParsingState::DigitsAfterE;
@@ -965,7 +979,7 @@ namespace crow
                                     return {};*/
                                 break;
                             case 'e': case 'E':
-                                state = (NumberParsingState)"\7\7\7\5\5\7\7"[state];
+                                state = static_cast<NumberParsingState>("\7\7\7\5\5\7\7"[state]);
                                 /*if (state == NumberParsingState::Digits || 
                                     state == NumberParsingState::DigitsAfterPoints)
                                 {
@@ -1142,27 +1156,32 @@ namespace crow
             return load(str.data(), str.size());
         }
 
-        class wvalue
+        /// JSON write value.
+
+        ///
+        /// Value can mean any json value, including a JSON object.
+        /// Write means this class is used to primarily assemble JSON objects using keys and values and export those into a string.
+        class wvalue : public returnable
         {
             friend class crow::mustache::template_t;
         public:
             type t() const { return t_; }
         private:
-            type t_{type::Null};
-            num_type nt{num_type::Null};
+            type t_{type::Null}; ///< The type of the value.
+            num_type nt{num_type::Null}; ///< The specific type of the number if \ref t_ is a number.
             union {
               double d;
               int64_t si;
               uint64_t ui {};
-            } num;
-            std::string s;
-            std::unique_ptr<std::vector<wvalue>> l;
-            std::unique_ptr<std::unordered_map<std::string, wvalue>> o;
+            } num; ///< Value if type is a number.
+            std::string s; ///< Value if type is a string.
+            std::unique_ptr<std::vector<wvalue>> l; ///< Value if type is a list.
+            std::unique_ptr<std::unordered_map<std::string, wvalue>> o; ///< Value if type is a JSON object.
         public:
 
-            wvalue() {}
-
-            wvalue(const rvalue& r)
+            wvalue() : returnable("application/json") {}
+            /// Create a write value from a read value (useful for editing JSON strings).
+            wvalue(const rvalue& r) : returnable("application/json")
             {
                 t_ = r.t();
                 switch(r.t())
@@ -1200,7 +1219,7 @@ namespace crow
                 }
             }
 
-            wvalue(wvalue&& r)
+            wvalue(wvalue&& r) : returnable("application/json")
             {
                 *this = std::move(r);
             }
@@ -1215,6 +1234,7 @@ namespace crow
                 return *this;
             }
 
+            /// Used for compatibility, same as \ref reset()
             void clear()
             {
                 reset();
@@ -1460,98 +1480,102 @@ namespace crow
                 return 1;
             }
 
-            friend void dump_internal(const wvalue& v, std::string& out);
-            friend std::string dump(const wvalue& v);
+        private:
+
+            inline void dump_string(const std::string& str, std::string& out)
+            {
+                out.push_back('"');
+                escape(str, out);
+                out.push_back('"');
+            }
+
+            inline void dump_internal(const wvalue& v, std::string& out)
+            {
+                switch(v.t_)
+                {
+                    case type::Null: out += "null"; break;
+                    case type::False: out += "false"; break;
+                    case type::True: out += "true"; break;
+                    case type::Number:
+                        {
+                            if (v.nt == num_type::Floating_point)
+                            {
+    #ifdef _MSC_VER
+    #define MSC_COMPATIBLE_SPRINTF(BUFFER_PTR, FORMAT_PTR, VALUE) sprintf_s((BUFFER_PTR), 128, (FORMAT_PTR), (VALUE))
+    #else
+    #define MSC_COMPATIBLE_SPRINTF(BUFFER_PTR, FORMAT_PTR, VALUE) sprintf((BUFFER_PTR), (FORMAT_PTR), (VALUE))
+    #endif
+                                char outbuf[128];
+                                MSC_COMPATIBLE_SPRINTF(outbuf, "%g", v.num.d);
+                                out += outbuf;
+    #undef MSC_COMPATIBLE_SPRINTF
+                            }
+                            else if (v.nt == num_type::Signed_integer)
+                            {
+                                out += std::to_string(v.num.si);
+                            }
+                            else
+                            {
+                                out += std::to_string(v.num.ui);
+                            }
+                        }
+                        break;
+                    case type::String: dump_string(v.s, out); break;
+                    case type::List:
+                         {
+                             out.push_back('[');
+                             if (v.l)
+                             {
+                                 bool first = true;
+                                 for(auto& x:*v.l)
+                                 {
+                                     if (!first)
+                                     {
+                                         out.push_back(',');
+                                     }
+                                     first = false;
+                                     dump_internal(x, out);
+                                 }
+                             }
+                             out.push_back(']');
+                         }
+                         break;
+                    case type::Object:
+                         {
+                             out.push_back('{');
+                             if (v.o)
+                             {
+                                 bool first = true;
+                                 for(auto& kv:*v.o)
+                                 {
+                                     if (!first)
+                                     {
+                                         out.push_back(',');
+                                     }
+                                     first = false;
+                                     dump_string(kv.first, out);
+                                     out.push_back(':');
+                                     dump_internal(kv.second, out);
+                                 }
+                             }
+                             out.push_back('}');
+                         }
+                         break;
+                }
+            }
+
+        public:
+            std::string dump()
+            {
+                std::string ret;
+                ret.reserve(estimate_length());
+                dump_internal(*this, ret);
+                return ret;
+            }
+
         };
 
-        inline void dump_string(const std::string& str, std::string& out)
-        {
-            out.push_back('"');
-            escape(str, out);
-            out.push_back('"');
-        }
-        inline void dump_internal(const wvalue& v, std::string& out)
-        {
-            switch(v.t_)
-            {
-                case type::Null: out += "null"; break;
-                case type::False: out += "false"; break;
-                case type::True: out += "true"; break;
-                case type::Number: 
-                    {
-                        if (v.nt == num_type::Floating_point)
-                        {
-#ifdef _MSC_VER
-#define MSC_COMPATIBLE_SPRINTF(BUFFER_PTR, FORMAT_PTR, VALUE) sprintf_s((BUFFER_PTR), 128, (FORMAT_PTR), (VALUE))
-#else
-#define MSC_COMPATIBLE_SPRINTF(BUFFER_PTR, FORMAT_PTR, VALUE) sprintf((BUFFER_PTR), (FORMAT_PTR), (VALUE))
-#endif
-                            char outbuf[128];
-                            MSC_COMPATIBLE_SPRINTF(outbuf, "%g", v.num.d);
-                            out += outbuf;
-#undef MSC_COMPATIBLE_SPRINTF
-                        }
-                        else if (v.nt == num_type::Signed_integer)
-                        {
-                            out += std::to_string(v.num.si);
-                        }
-                        else
-                        {
-                            out += std::to_string(v.num.ui);
-                        }
-                    }
-                    break;
-                case type::String: dump_string(v.s, out); break;
-                case type::List: 
-                     {
-                         out.push_back('[');
-                         if (v.l)
-                         {
-                             bool first = true;
-                             for(auto& x:*v.l)
-                             {
-                                 if (!first)
-                                 {
-                                     out.push_back(',');
-                                 }
-                                 first = false;
-                                 dump_internal(x, out);
-                             }
-                         }
-                         out.push_back(']');
-                     }
-                     break;
-                case type::Object:
-                     {
-                         out.push_back('{');
-                         if (v.o)
-                         {
-                             bool first = true;
-                             for(auto& kv:*v.o)
-                             {
-                                 if (!first)
-                                 {
-                                     out.push_back(',');
-                                 }
-                                 first = false;
-                                 dump_string(kv.first, out);
-                                 out.push_back(':');
-                                 dump_internal(kv.second, out);
-                             }
-                         }
-                         out.push_back('}');
-                     }
-                     break;
-            }
-        }
 
-        inline std::string dump(const wvalue& v)
-        {
-            std::string ret;
-            ret.reserve(v.estimate_length());
-            dump_internal(v, ret);
-            return ret;
-        }
 
         //std::vector<boost::asio::const_buffer> dump_ref(wvalue& v)
         //{

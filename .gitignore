@@ -22,6 +22,8 @@
 
 example
 unittest
+Testing/*
+include/crow/tags
 
 *.swp
 *.gcov
@@ -35,4 +37,18 @@ build
 crow_all.h
 
 # conan.io
-build/
+build*/
+
+#Doxygen
+html/
+
+#QT-Creator
+*.config
+*.creator*
+*.cflags
+*.cxxflags
+*.files
+*.includes
+
+#VS-Code
+.vscode

@@ -25,8 +25,17 @@
 #define CROW_LOG_LEVEL 1
 #endif
 
+#ifndef CROW_STATIC_DIRECTORY
+#define CROW_STATIC_DIRECTORY "static/"
+#endif
+#ifndef CROW_STATIC_ENDPOINT
+#define CROW_STATIC_ENDPOINT "/static/<path>"
+#endif
 
 // compiler flags
+#if defined(_MSVC_LANG) && _MSVC_LANG >= 201402L
+#define CROW_CAN_USE_CPP14
+#endif
 #if __cplusplus >= 201402L
 #define CROW_CAN_USE_CPP14
 #endif

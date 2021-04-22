@@ -5,6 +5,7 @@
 #include <iterator>
 #include <functional>
 #include "crow/json.h"
+#include "crow/logging.h"
 namespace crow
 {
     namespace mustache
@@ -44,11 +45,12 @@ namespace crow
             int end;
             int pos;
             ActionType t;
-            Action(ActionType t, int start, int end, int pos = 0) 
-                : start(start), end(end), pos(pos), t(t)
+            Action(ActionType t, size_t start, size_t end, size_t pos = 0) 
+                : start(static_cast<int>(start)), end(static_cast<int>(end)), pos(static_cast<int>(pos)), t(t)
             {}
         };
 
+        /// A mustache template object.
         class template_t 
         {
         public:
@@ -64,14 +66,17 @@ namespace crow
             {
                 return body_.substr(action.start, action.end - action.start);
             }
-            auto find_context(const std::string& name, const std::vector<context*>& stack)->std::pair<bool, context&>
+            auto find_context(const std::string& name, const std::vector<context*>& stack, bool shouldUseOnlyFirstStackValue = false)->std::pair<bool, context&>
             {
                 if (name == ".")
                 {
                     return {true, *stack.back()};
                 }
+                static json::wvalue empty_str;
+                empty_str = "";
+
                 int dotPosition = name.find(".");
-                if (dotPosition == (int)name.npos)
+                if (dotPosition == static_cast<int>(name.npos))
                 {
                     for(auto it = stack.rbegin(); it != stack.rend(); ++it)
                     {
@@ -86,7 +91,7 @@ namespace crow
                 {
                     std::vector<int> dotPositions;
                     dotPositions.push_back(-1);
-                    while(dotPosition != (int)name.npos)
+                    while(dotPosition != static_cast<int>(name.npos))
                     {
                         dotPositions.push_back(dotPosition);
                         dotPosition = name.find(".", dotPosition+1);
@@ -94,7 +99,7 @@ namespace crow
                     dotPositions.push_back(name.size());
                     std::vector<std::string> names;
                     names.reserve(dotPositions.size()-1);
-                    for(int i = 1; i < (int)dotPositions.size(); i ++)
+                    for(int i = 1; i < static_cast<int>(dotPositions.size()); i ++)
                         names.emplace_back(name.substr(dotPositions[i-1]+1, dotPositions[i]-dotPositions[i-1]-1));
 
                     for(auto it = stack.rbegin(); it != stack.rend(); ++it)
@@ -110,6 +115,9 @@ namespace crow
                             }
                             else
                             {
+                                if (shouldUseOnlyFirstStackValue) {
+                                    return {false, empty_str};
+                                }
                                 found = false;
                                 break;
                             }
@@ -120,8 +128,6 @@ namespace crow
 
                 }
 
-                static json::wvalue empty_str;
-                empty_str = "";
                 return {false, empty_str};
             }
 
@@ -141,6 +147,27 @@ namespace crow
                         default: out += *it; break;
                     }
                 }
+            }
+
+          bool isTagInsideObjectBlock(const int& current, const std::vector<context*>& stack)
+            {
+                int openedBlock = 0;
+                int totalBlocksBefore = 0;
+                for (int i = current; i > 0; --i) {
+                    ++totalBlocksBefore;
+                    auto& action = actions_[i - 1];
+
+                    if (action.t == ActionType::OpenBlock) {
+                        if (openedBlock == 0 && (*stack.rbegin())->t() == json::type::Object) {
+                            return true;
+                        }
+                        --openedBlock;
+                    } else if (action.t == ActionType::CloseBlock) {
+                        ++openedBlock;
+                    }
+                }
+
+                return false;
             }
 
             void render_internal(int actionBegin, int actionEnd, std::vector<context*>& stack, std::string& out, int indent)
@@ -171,12 +198,16 @@ namespace crow
                         case ActionType::UnescapeTag:
                         case ActionType::Tag:
                             {
-                                auto optional_ctx = find_context(tag_name(action), stack);
+                                bool shouldUseOnlyFirstStackValue = false;
+                                if (isTagInsideObjectBlock(current, stack)) {
+                                    shouldUseOnlyFirstStackValue = true;
+                                }
+                                auto optional_ctx = find_context(tag_name(action), stack, shouldUseOnlyFirstStackValue);
                                 auto& ctx = optional_ctx.second;
                                 switch(ctx.t())
                                 {
                                     case json::type::Number:
-                                        out += json::dump(ctx);
+                                        out += ctx.dump();
                                         break;
                                     case json::type::String:
                                         if (action.t == ActionType::Tag)
@@ -185,7 +216,7 @@ namespace crow
                                             out += ctx.s;
                                         break;
                                     default:
-                                        throw std::runtime_error("not implemented tag type" + boost::lexical_cast<std::string>((int)ctx.t()));
+                                        throw std::runtime_error("not implemented tag type" + boost::lexical_cast<std::string>(static_cast<int>(ctx.t())));
                                 }
                             }
                             break;
@@ -251,7 +282,7 @@ namespace crow
                                         current = action.pos;
                                         break;
                                     default:
-                                        throw std::runtime_error("{{#: not implemented context type: " + boost::lexical_cast<std::string>((int)ctx.t()));
+                                        throw std::runtime_error("{{#: not implemented context type: " + boost::lexical_cast<std::string>(static_cast<int>(ctx.t())));
                                         break;
                                 }
                                 break;
@@ -260,7 +291,7 @@ namespace crow
                             stack.pop_back();
                             break;
                         default:
-                            throw std::runtime_error("not implemented " + boost::lexical_cast<std::string>((int)action.t));
+                            throw std::runtime_error("not implemented " + boost::lexical_cast<std::string>(static_cast<int>(action.t)));
                     }
                     current++;
                 }
@@ -274,7 +305,7 @@ namespace crow
                     for(int i = fragment.first; i < fragment.second; i ++)
                     {
                         out += body_[i];
-                        if (body_[i] == '\n' && i+1 != (int)body_.size())
+                        if (body_[i] == '\n' && i+1 != static_cast<int>(body_.size()))
                             out.insert(out.size(), indent, ' ');
                     }
                 }
@@ -317,11 +348,11 @@ namespace crow
                     size_t idx = body_.find(tag_open, current);
                     if (idx == body_.npos)
                     {
-                        fragments_.emplace_back(current, body_.size());
+                        fragments_.emplace_back(static_cast<int>(current), static_cast<int>(body_.size()));
                         actions_.emplace_back(ActionType::Ignore, 0, 0);
                         break;
                     }
-                    fragments_.emplace_back(current, idx);
+                    fragments_.emplace_back(static_cast<int>(current), static_cast<int>(idx));
 
                     idx += tag_open.size();
                     size_t endIdx = body_.find(tag_close, idx);
@@ -341,7 +372,7 @@ namespace crow
                             idx++;
                             while(body_[idx] == ' ') idx++;
                             while(body_[endIdx-1] == ' ') endIdx--;
-                            blockPositions.emplace_back(actions_.size());
+                            blockPositions.emplace_back(static_cast<int>(actions_.size()));
                             actions_.emplace_back(ActionType::OpenBlock, idx, endIdx);
                             break;
                         case '/':
@@ -366,7 +397,7 @@ namespace crow
                             idx++;
                             while(body_[idx] == ' ') idx++;
                             while(body_[endIdx-1] == ' ') endIdx--;
-                            blockPositions.emplace_back(actions_.size());
+                            blockPositions.emplace_back(static_cast<int>(actions_.size()));
                             actions_.emplace_back(ActionType::ElseBlock, idx, endIdx);
                             break;
                         case '!':
@@ -450,7 +481,7 @@ namespace crow
                         continue;
                     auto& fragment_before = fragments_[i];
                     auto& fragment_after = fragments_[i+1];
-                    bool is_last_action = i == (int)actions_.size()-2;
+                    bool is_last_action = i == static_cast<int>(actions_.size())-2;
                     bool all_space_before = true;
                     int j, k;
                     for(j = fragment_before.second-1;j >= fragment_before.first;j--)
@@ -466,7 +497,7 @@ namespace crow
                     if (!all_space_before && body_[j] != '\n')
                         continue;
                     bool all_space_after = true;
-                    for(k = fragment_after.first; k < (int)body_.size() && k < fragment_after.second; k ++)
+                    for(k = fragment_after.first; k < static_cast<int>(body_.size()) && k < fragment_after.second; k ++)
                     {
                         if (body_[k] != ' ')
                         {
@@ -481,7 +512,7 @@ namespace crow
                                 body_[k] == '\n' 
                             || 
                                 (body_[k] == '\r' && 
-                                k + 1 < (int)body_.size() && 
+                                k + 1 < static_cast<int>(body_.size()) && 
                                 body_[k+1] == '\n')))
                         continue;
                     if (actions_[i].t == ActionType::Partial)
@@ -526,7 +557,10 @@ namespace crow
             path += filename;
             std::ifstream inf(path);
             if (!inf)
+            {
+                CROW_LOG_WARNING << "Template \"" << filename << "\" not found.";
                 return {};
+            }
             return {std::istreambuf_iterator<char>(inf), std::istreambuf_iterator<char>()};
         }
 

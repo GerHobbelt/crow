@@ -51,7 +51,7 @@ namespace crow
 
                 tm my_tm;
 
-#if defined(_MSC_VER) or defined(__MINGW32__)
+#if defined(_MSC_VER) || defined(__MINGW32__)
                 gmtime_s(&my_tm, &t);
 #else
                 gmtime_r(&t, &my_tm);
@@ -108,7 +108,7 @@ namespace crow
             //
             static LogLevel& get_log_level_ref()
             {
-                static LogLevel current_level = (LogLevel)CROW_LOG_LEVEL;
+                static LogLevel current_level = static_cast<LogLevel>(CROW_LOG_LEVEL);
                 return current_level;
             }
             static ILogHandler*& get_handler_ref()

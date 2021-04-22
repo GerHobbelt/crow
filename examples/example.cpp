@@ -1,3 +1,4 @@
+#define CROW_MAIN
 #include "crow.h"
 
 #include <sstream>
@@ -13,12 +14,11 @@ struct ExampleMiddleware
 {
     std::string message;
 
-    ExampleMiddleware() 
+    ExampleMiddleware() : message("foo")
     {
-        message = "foo";
     }
 
-    void setMessage(std::string newMsg)
+    void setMessage(const std::string &newMsg)
     {
         message = newMsg;
     }
@@ -84,7 +84,7 @@ int main()
 
     // To see it in action submit {ip}:18080/add/1/2 and you should receive 3 (exciting, isn't it)
     CROW_ROUTE(app,"/add/<int>/<int>")
-    ([](const crow::request& /*req*/, crow::response& res, int a, int b){
+    ([](crow::response& res, int a, int b){
         std::ostringstream os;
         os << a+b;
         res.write(os.str());
@@ -163,8 +163,16 @@ int main()
         return std::string(512*1024, ' ');
     });
 
+    // Take a multipart/form-data request and print out its body
+    CROW_ROUTE(app,"/multipart")
+    ([](const crow::request& req){
+        crow::multipart::message msg(req);
+        CROW_LOG_INFO << "body of the first part " << msg.parts[0].body;
+        return "it works!";
+    });
+
     // enables all log
-    app.loglevel(crow::LogLevel::DEBUG);
+    app.loglevel(crow::LogLevel::Debug);
     //crow::logger::setHandler(std::make_shared<ExampleLogHandler>());
 
     app.port(18080)

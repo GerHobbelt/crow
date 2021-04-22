@@ -1,3 +1,4 @@
+#define CROW_MAIN
 #include "crow.h"
 #include <string>
 #include <vector>
@@ -14,7 +15,7 @@ void broadcast(const string& msg)
     crow::json::wvalue x;
     x["msgs"][0] = msgs.back();
     x["last"] = msgs.size();
-    string body = crow::json::dump(x);
+    string body = x.dump();
     for(auto p : ress)
     {
         auto* res = p.first;
@@ -57,7 +58,7 @@ int main()
                 x["msgs"][i-after] = msgs[i];
             x["last"] = msgs.size();
 
-            res.write(crow::json::dump(x));
+            res.write(x.dump());
             res.end();
         }
         else
