@@ -6,6 +6,10 @@
 #include <iostream>
 #include "crow/utility.h"
 
+#ifdef _WINNT_
+#undef DELETE			// DELETE is defined in winnt.h and clashes with our enum below
+#endif
+
 namespace crow
 {
     enum class HTTPMethod

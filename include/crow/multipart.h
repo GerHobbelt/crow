@@ -143,9 +143,9 @@ namespace crow
                 {
                     header to_add;
 
-                    size_t found = lines.find(crlf);
-                    std::string line = lines.substr(0, found);
-                    lines.erase(0, found+2);
+                    size_t found_crlf = lines.find(crlf);
+                    std::string line = lines.substr(0, found_crlf);
+                    lines.erase(0, found_crlf +2);
                     //add the header if available
                     if (!line.empty())
                     {

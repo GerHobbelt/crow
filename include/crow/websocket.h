@@ -191,10 +191,10 @@ namespace crow
                 std::string build_header(int opcode, size_t size)
                 {
                     char buf[2+8] = "\x80\x00";
-                    buf[0] += opcode;
+                    buf[0] += static_cast<char>(opcode);
                     if (size < 126)
                     {
-                        buf[1] += size;
+                        buf[1] += static_cast<char>(size);
                         return {buf, buf+2};
                     }
                     else if (size < 0x10000)

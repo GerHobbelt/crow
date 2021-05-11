@@ -1114,9 +1114,9 @@ namespace crow
             if (req.method >= HTTPMethod::InternalMethodCount)
                 return;
 
-            auto& per_method = per_methods_[static_cast<int>(req.method)];
-            auto& rules = per_method.rules;
-            unsigned rule_index = per_method.trie.find(req.url).first;
+            auto& per_method_r = per_methods_[static_cast<int>(req.method)];
+            auto& rules = per_method_r.rules;
+            unsigned rule_index = per_method_r.trie.find(req.url).first;
 
             if (!rule_index)
             {
@@ -1239,9 +1239,9 @@ namespace crow
                 }
             }
 
-            auto& per_method = per_methods_[static_cast<int>(method_actual)];
-            auto& trie = per_method.trie;
-            auto& rules = per_method.rules;
+            auto& per_method_r = per_methods_[static_cast<int>(method_actual)];
+            auto& trie = per_method_r.trie;
+            auto& rules = per_method_r.rules;
 
             auto found = trie.find(req.url);
 
