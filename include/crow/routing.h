@@ -1,5 +1,5 @@
 #pragma once
-
+// clang-format off
 #include <cstdint>
 #include <utility>
 #include <tuple>
@@ -171,6 +171,17 @@ namespace crow
             template <typename Func, typename ... ArgsWrapped>
             struct Wrapped
             {
+                template <typename ... Args>
+              void set_(
+                  Func f,
+                  typename std::enable_if<
+                      std::is_same<typename std::tuple_element<0, std::tuple<Args..., void>>::type, response&>::value
+                &&   !std::is_convertible<typename std::result_of<Func(Args...)>::type, response>::value
+                ,     int>::type = 0)
+              {
+                handler_ = req_handler_wrapper<Args...>(std::move(f));
+              }
+
                 template <typename ... Args>
                 void set_(Func f, typename std::enable_if<
                     !std::is_same<typename std::tuple_element<0, std::tuple<Args..., void>>::type, const request&>::value
