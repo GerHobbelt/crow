@@ -4,6 +4,10 @@
 
 
 
+#if defined(BUILD_MONOLITHIC)
+#define main()	crow_example_json_map_main()
+#endif
+
 int main()
 {
     crow::SimpleApp app;
@@ -25,4 +29,7 @@ app.loglevel(crow::LogLevel::Debug);
 app.port(18080)
     .multithreaded()
     .run();
+
+// when we get here, we may assume failure as the server code above should run indefinitely.
+return EXIT_FAILURE;
 }

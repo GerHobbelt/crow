@@ -10,6 +10,10 @@ class ExampleLogHandler : public crow::ILogHandler {
         }
 };
 
+#if defined(BUILD_MONOLITHIC)
+#define main()	crow_example_with_all_main()
+#endif
+
 int main()
 {
     crow::SimpleApp app;
@@ -95,4 +99,7 @@ int main()
         .server_name("CrowCpp")
         .multithreaded()
         .run();
+
+	// when we get here, we may assume failure as the server code above should run indefinitely.
+	return EXIT_FAILURE;
 }

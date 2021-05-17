@@ -1,10 +1,16 @@
-#define CROW_ENABLE_SSL
+// test for #define CROW_ENABLE_SSL, which should've been set up in crow/settings.h
 #define CROW_MAIN
 #include "crow.h"
 
+#if defined(BUILD_MONOLITHIC)
+#define main()	crow_example_ssl_main()
+#endif
+
 int main()
 {
-    crow::SimpleApp app;
+#ifdef CROW_ENABLE_SSL
+
+	crow::SimpleApp app;
 
     CROW_ROUTE(app, "/")
     ([]() {
@@ -25,4 +31,13 @@ int main()
      *
      *   app.port(18080).ssl(ctx).run();
      */
+
+#else
+
+	std::cerr << "\nERROR: SSL (OpenSSL) is not enabled in this build.\n\n";
+
+#endif
+
+	// when we get here, we may assume failure as the server code above should run indefinitely.
+	return EXIT_FAILURE;
 }

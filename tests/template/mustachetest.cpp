@@ -16,6 +16,10 @@ string read_all(const string& filename)
   return {istreambuf_iterator<char>(is), istreambuf_iterator<char>()};
 }
 
+#if defined(BUILD_MONOLITHIC)
+#define main()	crow_mustache_main()
+#endif
+
 int main()
 {
   auto data = json::load(read_all("data"));

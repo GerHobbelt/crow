@@ -6,10 +6,10 @@
 
 using namespace std;
 
-vector<string> msgs;
-vector<pair<crow::response*, decltype(chrono::steady_clock::now())>> ress;
+static vector<string> msgs;
+static vector<pair<crow::response*, decltype(chrono::steady_clock::now())>> ress;
 
-void broadcast(const string& msg)
+static void broadcast(const string& msg)
 {
     msgs.push_back(msg);
     crow::json::wvalue x;
@@ -24,6 +24,11 @@ void broadcast(const string& msg)
     }
     ress.clear();
 }
+
+#if defined(BUILD_MONOLITHIC)
+#define main()	crow_example_chat_main()
+#endif
+
 // To see how it works go on {ip}:40080 but I just got it working with external build (not directly in IDE, I guess a problem with dependency)
 int main()
 {
@@ -89,4 +94,7 @@ int main()
     app.port(40080)
         //.multithreaded()
         .run();
+
+	// when we get here, we may assume failure as the server code above should run indefinitely.
+	return EXIT_FAILURE;
 }

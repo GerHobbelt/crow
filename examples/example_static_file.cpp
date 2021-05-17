@@ -3,6 +3,10 @@
 #define CROW_MAIN
 #include "crow.h"
 
+#if defined(BUILD_MONOLITHIC)
+#define main()	crow_example_static_file_main()
+#endif
+
 int main()
 {
 

@@ -2,6 +2,10 @@
 #include "crow.h"
 #include "crow/compression.h"
 
+#if defined(BUILD_MONOLITHIC)
+#define main()	crow_example_compression_main()
+#endif
+
 int main()
 {
     crow::SimpleApp app;
@@ -27,4 +31,7 @@ int main()
         .loglevel(crow::LogLevel::Debug)
         .multithreaded()
         .run();
+
+	// when we get here, we may assume failure as the server code above should run indefinitely.
+	return EXIT_FAILURE;
 }
