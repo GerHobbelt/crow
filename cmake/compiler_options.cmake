@@ -2,8 +2,12 @@
 
 if(MSVC)
 
-  list(APPEND compiler_options 
+  list(APPEND compiler_options
     /W4
+    /wd4244
+    /wd4245
+    /wd4267
+    /wd4100
     /permissive-
     $<$<CONFIG:RELEASE>:/O2 /Ob2>
     $<$<CONFIG:MINSIZEREL>:/O1 /Ob1>
@@ -12,7 +16,7 @@ if(MSVC)
 
 else(MSVC)
 
-  list(APPEND compiler_options 
+  list(APPEND compiler_options
     -Wall
     -Wextra
     -Wpedantic
