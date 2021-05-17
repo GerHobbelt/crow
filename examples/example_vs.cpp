@@ -78,14 +78,31 @@ int main()
     });
 
     app.route_dynamic("/add/<int>/<int>")
-    ([](crow::response& res, int a, int b){
+    ([](const crow::request& req, crow::response& res, int a, int b){
         std::ostringstream os;
         os << a+b;
         res.write(os.str());
         res.end();
     });
 
-    // Compile error with message "Handler type is mismatched with URL parameters"
+	app.route_dynamic("/plus/<int>/<int>")
+		([](int a, int b) {
+		std::ostringstream os;
+		os << a + b;
+		return crow::response(os.str());
+			});
+
+#if 0
+	app.route_dynamic("/sum/<int>/<int>")
+		([](crow::response& res, int a, int b) {
+		std::ostringstream os;
+		os << a + b;
+		res.write(os.str());
+		res.end();
+			});
+#endif
+
+	// Compile error with message "Handler type is mismatched with URL parameters"
     //CROW_ROUTE(app,"/another/<int>")
     //([](int a, int b){
         //return crow::response(500);
