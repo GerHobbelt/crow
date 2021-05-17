@@ -1,4 +1,7 @@
 //This file is generated from nginx/conf/mime.types using nginx_mime2cpp.py
+
+#pragma once
+
 #include <unordered_map>
 #include <string>
 

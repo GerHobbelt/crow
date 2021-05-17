@@ -16,6 +16,9 @@ def main():
     outLines = []
     outLines.append("//This file is generated from nginx/conf/mime.types using nginx_mime2cpp.py")
     outLines.extend([
+        "",
+        "#pragma once",
+        "",
         "#include <unordered_map>",
         "#include <string>",
         "",
