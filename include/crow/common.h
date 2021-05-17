@@ -68,7 +68,6 @@ namespace crow
             default:
                 return "invalid";
         }
-        return "invalid";
     }
 
     enum class ParamType

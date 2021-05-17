@@ -360,9 +360,10 @@ namespace crow
                             + std::string(get_type_str(t()));
                         throw std::runtime_error(msg);
                 }
-#endif
+#else
                 return boost::lexical_cast<int64_t>(start_, end_-start_);
-            }
+#endif
+			}
 
             /// The unsigned integer value.
             uint64_t u() const
@@ -375,9 +376,10 @@ namespace crow
                     default:
                         throw std::runtime_error(std::string("expected number, got: ") + get_type_str(t()));
                 }
+#else
+				return boost::lexical_cast<uint64_t>(start_, end_-start_);
 #endif
-                return boost::lexical_cast<uint64_t>(start_, end_-start_);
-            }
+			}
 
             /// The double precision floating-point number value.
             double d() const
