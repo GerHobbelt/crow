@@ -1,5 +1,7 @@
 #pragma once
 
+#include "crow/settings.h"
+
 #include <string>
 #include <vector>
 #include <sstream>
@@ -102,7 +104,6 @@ namespace crow
 
             std::vector<part> parse_body(std::string body)
             {
-
                   std::vector<part> sections;
 
                   std::string delimiter = dd + boundary;

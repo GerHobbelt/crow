@@ -1,4 +1,7 @@
 #pragma once
+
+#include "crow/settings.h"
+
 #include <string>
 #include <unordered_map>
 #include <ios>

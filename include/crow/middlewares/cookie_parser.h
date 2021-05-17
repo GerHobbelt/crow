@@ -1,4 +1,7 @@
 #pragma once
+
+#include "crow/settings.h"
+
 #include <boost/algorithm/string/trim.hpp>
 #include "crow/http_request.h"
 #include "crow/http_response.h"

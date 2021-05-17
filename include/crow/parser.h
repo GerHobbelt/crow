@@ -1,5 +1,7 @@
 #pragma once
 
+#include "crow/settings.h"
+
 #include <string>
 #include <unordered_map>
 #include <boost/algorithm/string.hpp>

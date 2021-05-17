@@ -46,4 +46,27 @@
 #define constexpr const
 #define noexcept throw()
 #endif
+
+//
+// shut up boost::asio warning
+//
+// We support Windows 10 only, unless someone happens to still have Win 8 and is willing to test our goods
+//                                                                                       [Ger Hobbelt]
+//
+#if !defined(_WIN32_WINNT_WIN10)
+#define _WIN32_WINNT_WINXP                  0x0501 // Windows XP
+#define _WIN32_WINNT_WS03                   0x0502 // Windows Server 2003
+#define _WIN32_WINNT_WIN6                   0x0600 // Windows Vista
+#define _WIN32_WINNT_VISTA                  0x0600 // Windows Vista
+#define _WIN32_WINNT_WS08                   0x0600 // Windows Server 2008
+#define _WIN32_WINNT_LONGHORN               0x0600 // Windows Vista
+#define _WIN32_WINNT_WIN7                   0x0601 // Windows 7
+#define _WIN32_WINNT_WIN8                   0x0602 // Windows 8
+#define _WIN32_WINNT_WINBLUE                0x0603 // Windows 8.1
+#define _WIN32_WINNT_WINTHRESHOLD           0x0A00 // Windows 10
+#define _WIN32_WINNT_WIN10                  0x0A00 // Windows 10
+#endif
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT _WIN32_WINNT_WIN10
+#endif
 #endif

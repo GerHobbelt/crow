@@ -1,5 +1,7 @@
 #pragma once
 
+#include "crow/settings.h"
+
 #include <chrono>
 #include <string>
 #include <functional>
@@ -10,7 +12,6 @@
 #include <thread>
 #include <condition_variable>
 
-#include "crow/settings.h"
 #include "crow/logging.h"
 #include "crow/utility.h"
 #include "crow/routing.h"

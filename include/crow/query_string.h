@@ -1,5 +1,7 @@
 #pragma once
 
+#include "crow/settings.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <string>

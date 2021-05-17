@@ -1,20 +1,18 @@
 #pragma once
 
+#include "crow/settings.h"
+
 #include <vector>
 #include <string>
 #include <stdexcept>
 #include <iostream>
 #include "crow/utility.h"
 
-#ifdef _WINNT_
-#undef DELETE			// DELETE is defined in winnt.h and clashes with our enum below
-#endif
-
 namespace crow
 {
     enum class HTTPMethod
     {
-#ifndef DELETE
+#if 0        // DELETE is defined in winnt.h and clashes with our enum below
         DELETE = 0,
         GET,
         HEAD,

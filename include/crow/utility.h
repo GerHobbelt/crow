@@ -1,5 +1,7 @@
 #pragma once
 
+#include "crow/settings.h"
+
 #include <cstdint>
 #include <stdexcept>
 #include <tuple>
@@ -7,8 +9,6 @@
 #include <cstring>
 #include <functional>
 #include <string>
-
-#include "crow/settings.h"
 
 namespace crow
 {

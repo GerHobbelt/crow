@@ -1,4 +1,7 @@
 #pragma once
+
+#include "crow/settings.h"
+
 #include <boost/asio.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/lexical_cast.hpp>
@@ -12,7 +15,6 @@
 #include "crow/parser.h"
 #include "crow/http_response.h"
 #include "crow/logging.h"
-#include "crow/settings.h"
 #include "crow/dumb_timer_queue.h"
 #include "crow/middleware_context.h"
 #include "crow/socket_adaptors.h"

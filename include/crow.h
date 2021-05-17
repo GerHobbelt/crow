@@ -1,4 +1,5 @@
 #pragma once
+#include "crow/settings.h"
 #include "crow/query_string.h"
 #include "crow/http_parser_merged.h"
 #include "crow/ci_map.h"

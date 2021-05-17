@@ -1,4 +1,7 @@
 #pragma once
+
+#include "crow/settings.h"
+
 #include <string>
 #include <vector>
 #include <fstream>
@@ -6,6 +9,7 @@
 #include <functional>
 #include "crow/json.h"
 #include "crow/logging.h"
+
 namespace crow
 {
     namespace mustache

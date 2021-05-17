@@ -1,14 +1,18 @@
 #pragma once
+
+#include "crow/settings.h"
+
 #include <boost/asio.hpp>
 #ifdef CROW_ENABLE_SSL
 #include <boost/asio/ssl.hpp>
 #endif
-#include "crow/settings.h"
+
 #if BOOST_VERSION >= 107000
 #define GET_IO_SERVICE(s) ((boost::asio::io_context&)(s).get_executor().context())
 #else
 #define GET_IO_SERVICE(s) ((s).get_io_service())
 #endif
+
 namespace crow
 {
     using namespace boost;

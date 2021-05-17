@@ -1,5 +1,7 @@
 #pragma once
 
+#include "crow/settings.h"
+
 #include <chrono>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/asio.hpp>

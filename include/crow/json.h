@@ -1,5 +1,7 @@
 #pragma once
 
+#include "crow/settings.h"
+
 //#define CROW_JSON_NO_ERROR_CHECK
 //#define CROW_JSON_USE_MAP
 
@@ -17,7 +19,6 @@
 #include <boost/operators.hpp>
 #include <vector>
 
-#include "crow/settings.h"
 #include "crow/returnable.h"
 
 #if defined(__GNUG__) || defined(__clang__)

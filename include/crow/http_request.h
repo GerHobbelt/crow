@@ -1,5 +1,7 @@
 #pragma once
 
+#include "crow/settings.h"
+
 #include <boost/asio.hpp>
 
 #include "crow/common.h"

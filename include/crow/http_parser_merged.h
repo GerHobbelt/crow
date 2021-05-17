@@ -21,6 +21,9 @@
  */
 #ifndef CROW_http_parser_h
 #define CROW_http_parser_h
+
+#include "crow/settings.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -1,4 +1,7 @@
 #pragma once
+
+#include "crow/settings.h"
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/array.hpp>
 #include "crow/socket_adaptors.h"

@@ -1,13 +1,13 @@
 #pragma once
 
+#include "crow/settings.h"
+
 #include <string>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
 #include <sstream>
-
-#include "crow/settings.h"
 
 namespace crow
 {
