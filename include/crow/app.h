@@ -80,6 +80,7 @@ namespace crow
             return router_.new_rule_dynamic(std::move(rule));
         }
 
+#if (__cplusplus < 201703L)
         ///Create a route using a rule (**Use CROW_ROUTE instead**)
         template <uint64_t Tag>
         auto route(std::string&& rule)
@@ -87,6 +88,13 @@ namespace crow
         {
             return router_.new_rule_tagged<Tag>(std::move(rule));
         }
+#else
+        template <uint64_t Tag>
+        auto& route(std::string&& rule)
+        {
+            return router_.new_rule_tagged<Tag>(std::move(rule));
+        }
+#endif
 
         ///Create a route for any requests without a proper route (**Use CROW_CATCHALL_ROUTE instead**)
         CatchallRule& catchall_route()
