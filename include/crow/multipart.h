@@ -219,7 +219,7 @@ namespace crow
 
             void erase(int isize)
             {
-                int tmp = max(0, size - isize);
+                int tmp = std::max(0, size - isize);
                 c_str += (size - tmp);
                 size = tmp;
             }
@@ -241,9 +241,9 @@ namespace crow
 
         inline size_t strpos(sting_view &str1, const std::string &str2)
         {
-            void *ret = memmem((const void *)(str1.c_str), str1.size, (const void *)(str2.c_str()), str2.size());
+            const char *ret = strstr(str1.c_str, str2.c_str());
             if (ret) {
-                return (const char *)ret - str1.c_str;
+                return ret - str1.c_str;
             }
             return -1;
         }
@@ -273,7 +273,7 @@ namespace crow
                 std::stringstream str;
                 std::string delimiter = dd + boundary;
 
-                for (uint i = 0; i < parts.size(); i++) {
+                for (unsigned int i = 0; i < parts.size(); i++) {
                     str << delimiter << crlf;
                     str << dump(i);
                 }
@@ -334,7 +334,7 @@ namespace crow
                 while (memcmp(body_view.c_str, crlf.c_str(), 2)) {
                     size_t found = strpos(body_view, delimiter);
 
-                    sting_view section(body_view.c_str, max(0, static_cast<int>(found)));
+                    sting_view section(body_view.c_str, std::max(0, static_cast<int>(found)));
 
                     //+2 is the CRLF
                     //We don't check it and delete it so that the same delimiter can be used for
@@ -362,7 +362,7 @@ namespace crow
                 parse_section_head(head_line, to_return);
 
                 //to_return.body(body.substr(section.c_str-body.c_str(), static_cast<int>(max(0, static_cast<int>(section.size - 2))));
-                to_return.body.set(section.c_str, static_cast<int>(max(0, static_cast<int>(section.size - 2))));
+                to_return.body.set(section.c_str, static_cast<int>(std::max(0, static_cast<int>(section.size - 2))));
 
                 return to_return;
             }
@@ -372,9 +372,9 @@ namespace crow
                 while (!lines.empty()) {
                     header to_add;
 
-                    size_t found = lines.find(crlf);
-                    std::string line = lines.substr(0, found);
-                    lines.erase(0, found + 2);
+                    size_t found_cr = lines.find(crlf);
+                    std::string line = lines.substr(0, found_cr);
+                    lines.erase(0, found_cr + 2);
                     //add the header if available
                     if (!line.empty()) {
                         size_t found = line.find("; ");
