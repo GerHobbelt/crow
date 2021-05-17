@@ -1116,7 +1116,7 @@ namespace crow
                         default:
                             return decode_number();
                     }
-                    return {};
+                    //return {};
                 }
 
                 rvalue decode_object()
