@@ -85,7 +85,7 @@ int main()
         res.end();
     });
 
-    // Compile error with message "Handler type is mismatched with URL paramters"
+    // Compile error with message "Handler type is mismatched with URL parameters"
     //CROW_ROUTE(app,"/another/<int>")
     //([](int a, int b){
         //return crow::response(500);
