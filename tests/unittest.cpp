@@ -1683,19 +1683,19 @@ TEST_CASE("zlib_compression")
         std::string inflated_string;
         Bytef tmp[8192];
 
-        z_stream zstream{};
+		zng_stream zstream{};
         zstream.avail_in = deflated_string.size();
         // Nasty const_cast but zlib won't alter its contents
         zstream.next_in = const_cast<Bytef *>(reinterpret_cast<Bytef const *>(deflated_string.c_str()));
         // Initialize with automatic header detection, for gzip support
-        if (::inflateInit2(&zstream, MAX_WBITS | 32) == Z_OK)
+        if (::zng_inflateInit2(&zstream, MAX_WBITS | 32) == Z_OK)
         {
             do
             {
                 zstream.avail_out = sizeof(tmp);
                 zstream.next_out = &tmp[0];
 
-                auto ret = ::inflate(&zstream, Z_NO_FLUSH);
+                auto ret = ::zng_inflate(&zstream, Z_NO_FLUSH);
                 if (ret == Z_OK || ret == Z_STREAM_END)
                 {
                     std::copy(&tmp[0], &tmp[sizeof(tmp) - zstream.avail_out], std::back_inserter(inflated_string));
@@ -1710,7 +1710,7 @@ TEST_CASE("zlib_compression")
             } while (zstream.avail_out == 0);
 
             // Free zlib's internal memory
-            ::inflateEnd(&zstream);
+            ::zng_inflateEnd(&zstream);
         }
 
         return inflated_string;
