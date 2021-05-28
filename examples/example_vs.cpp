@@ -48,31 +48,32 @@ int main()
 
     app.get_middleware<ExampleMiddleware>().setMessage("hello");
 
-    app.route_dynamic("/")
+    CROW_ROUTE(app, "/")
+        .name("hello")
     ([]{
         return "Hello World!";
     });
 
-    app.route_dynamic("/about")
+    CROW_ROUTE(app, "/about")
     ([](){
         return "About Crow example.";
     });
 
     // a request to /path should be forwarded to /path/
-    app.route_dynamic("/path/")
+    CROW_ROUTE(app, "/path/")
     ([](){
         return "Trailing slash test case..";
     });
 
     // simple json response
-    app.route_dynamic("/json")
+    CROW_ROUTE(app, "/json")
     ([]{
         crow::json::wvalue x;
         x["message"] = "Hello, World!";
         return x;
     });
 
-    app.route_dynamic("/hello/<int>")
+    CROW_ROUTE(app, "/hello/<int>")
     ([](int count){
         if (count > 100)
             return crow::response(400);
@@ -81,7 +82,7 @@ int main()
         return crow::response(os.str());
     });
 
-    app.route_dynamic("/add/<int>/<int>")
+    CROW_ROUTE(app, "/add/<int>/<int>")
     ([](const crow::request& req, crow::response& res, int a, int b){
         std::ostringstream os;
         os << a+b;
@@ -89,21 +90,21 @@ int main()
         res.end();
     });
 
-	app.route_dynamic("/plus/<int>/<int>")
-		([](int a, int b) {
+    CROW_ROUTE(app, "/plus/<int>/<int>")
+	([](int a, int b) {
 		std::ostringstream os;
 		os << a + b;
 		return crow::response(os.str());
-			});
+	});
 
 #if 0
-	app.route_dynamic("/sum/<int>/<int>")
-		([](crow::response& res, int a, int b) {
+    CROW_ROUTE(app, "/sum/<int>/<int>")
+	([](crow::response& res, int a, int b) {
 		std::ostringstream os;
 		os << a + b;
 		res.write(os.str());
 		res.end();
-			});
+	});
 #endif
 
 	// Compile error with message "Handler type is mismatched with URL parameters"
@@ -113,7 +114,7 @@ int main()
     //});
 
     // more json example
-    app.route_dynamic("/add_json")
+    CROW_ROUTE(app, "/add_json")
         .methods(crow::HTTPMethod::Post)
     ([](const crow::request& req){
         auto x = crow::json::load(req.body);

@@ -1609,14 +1609,14 @@ namespace crow
 
         private:
 
-            inline void dump_string(const std::string& str, std::string& out)
+            inline void dump_string(const std::string& str, std::string& out) const
             {
                 out.push_back('"');
                 escape(str, out);
                 out.push_back('"');
             }
 
-            inline void dump_internal(const wvalue& v, std::string& out)
+            inline void dump_internal(const wvalue& v, std::string& out) const
             {
                 switch(v.t_)
                 {
@@ -1692,7 +1692,7 @@ namespace crow
             }
 
         public:
-            std::string dump()
+            std::string dump() const
             {
                 std::string ret;
                 ret.reserve(estimate_length());
