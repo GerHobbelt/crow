@@ -1,3 +1,4 @@
+#ifdef CROW_ENABLE_COMPRESSION
 #pragma once
 
 #include "crow/settings.h"
@@ -6,7 +7,6 @@
 #include <zlib-ng.h>
 
 // http://zlib.net/manual.html
-
 namespace crow
 {
     namespace compression
@@ -97,3 +97,5 @@ namespace crow
         }
     }
 }
+
+#endif
