@@ -90,6 +90,7 @@ namespace crow
             code = r.code;
             headers = std::move(r.headers);
             completed_ = r.completed_;
+            file_info = std::move(r.file_info);
             return *this;
         }
 
