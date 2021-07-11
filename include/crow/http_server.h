@@ -15,6 +15,7 @@
 
 #include <memory>
 
+#include "crow/version.h"
 #include "crow/http_connection.h"
 #include "crow/logging.h"
 #include "crow/dumb_timer_queue.h"
@@ -28,7 +29,7 @@ namespace crow
     class Server
     {
     public:
-    Server(Handler* handler, std::string bindaddr, uint16_t port, std::string server_name = "Crow/0.3", std::tuple<Middlewares...>* middlewares = nullptr, uint16_t concurrency = 1, typename Adaptor::context* adaptor_ctx = nullptr)
+    Server(Handler* handler, std::string bindaddr, uint16_t port, std::string server_name = std::string("Crow/") + VERSION, std::tuple<Middlewares...>* middlewares = nullptr, uint16_t concurrency = 1, typename Adaptor::context* adaptor_ctx = nullptr)
             : acceptor_(io_service_, tcp::endpoint(boost::asio::ip::address::from_string(bindaddr), port)),
             signals_(io_service_, SIGINT, SIGTERM),
             tick_timer_(io_service_),
@@ -123,7 +124,7 @@ namespace crow
                             init_count ++;
                             while(1)
                             {
-                                try 
+                                try
                                 {
                                     if (io_service_pool_[i]->run() == 0)
                                     {
@@ -137,7 +138,7 @@ namespace crow
                             }
                         }));
 
-            if (tick_function_ && tick_interval_.count() > 0) 
+            if (tick_function_ && tick_interval_.count() > 0)
             {
                 tick_timer_.expires_from_now(boost::posix_time::milliseconds(tick_interval_.count()));
                 tick_timer_.async_wait([this](const boost::system::error_code& ec)

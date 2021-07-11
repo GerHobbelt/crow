@@ -12,6 +12,7 @@
 #include <thread>
 #include <condition_variable>
 
+#include "crow/version.h"
 #include "crow/logging.h"
 #include "crow/utility.h"
 #include "crow/routing.h"
@@ -133,7 +134,7 @@ namespace crow
             return *this;
         }
 
-        ///Set the server name (default Crow/0.3)
+        ///Set the server name
         self_t& server_name(std::string server_name)
         {
             server_name_ = server_name;
@@ -373,7 +374,7 @@ namespace crow
     private:
         uint16_t port_ = 80;
         uint16_t concurrency_ = 1;
-        std::string server_name_ = "Crow/0.3";
+        std::string server_name_ = std::string("Crow/") + VERSION;
         std::string bindaddr_ = "0.0.0.0";
         Router router_;
 
