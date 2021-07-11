@@ -33,7 +33,11 @@
 namespace crow
 {
 #ifdef CROW_MAIN
-    int detail::dumb_timer_queue::tick = 5;
+	// https://docs.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-error-lnk2005?view=msvc-160
+#if defined(_MSC_VER)
+	__declspec(selectany)
+#endif
+	int detail::dumb_timer_queue::tick = 5;
 #endif
 
 #ifdef CROW_ENABLE_SSL
