@@ -5,6 +5,16 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <sys/types.h>
+
+/* Define if ssize_t is not an available type in sys/types.h. */
+#if defined(_MSC_VER)
+#if defined(_WIN64)
+typedef __in64 ssize_t;
+#else
+typedef long ssize_t;
+#endif
+#endif
 
 #include "crow/http_request.h"
 #include "crow/returnable.h"
@@ -239,11 +249,11 @@ namespace crow
             int size;
         };
 
-        inline size_t strpos(sting_view &str1, const std::string &str2)
+        inline ssize_t strpos(sting_view &str1, const std::string &str2)
         {
             const char *ret = strstr(str1.c_str, str2.c_str());
             if (ret) {
-                return ret - str1.c_str;
+                return (ssize_t)(ret - str1.c_str);
             }
             return -1;
         }
