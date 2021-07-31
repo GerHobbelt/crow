@@ -2,12 +2,14 @@
 #define CROW_ENABLE_COMPRESSION
 #include "crow.h"
 #include "crow/compression.h"
+#include "crow/monolithic_examples.h"
+
 
 #if defined(BUILD_MONOLITHIC)
-#define main()	crow_example_compression_main()
+#define main	crow_example_compression_main
 #endif
 
-int main()
+int main(void)
 {
     crow::SimpleApp app;
     //crow::App<crow::CompressionGzip> app;

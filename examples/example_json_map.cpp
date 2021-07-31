@@ -1,14 +1,15 @@
 #define CROW_MAIN
 #define CROW_JSON_USE_MAP
 #include "crow.h"
+#include "crow/monolithic_examples.h"
 
 
 
 #if defined(BUILD_MONOLITHIC)
-#define main()	crow_example_json_map_main()
+#define main	crow_example_json_map_main
 #endif
 
-int main()
+int main(void)
 {
     crow::SimpleApp app;
 

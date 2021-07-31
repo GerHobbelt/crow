@@ -1,8 +1,11 @@
 #define CROW_MAIN
 #include "crow.h"
+#include "crow/monolithic_examples.h"
+
 #include <string>
 #include <vector>
 #include <chrono>
+
 
 using namespace std;
 
@@ -25,12 +28,13 @@ static void broadcast(const string& msg)
     ress.clear();
 }
 
+
 #if defined(BUILD_MONOLITHIC)
-#define main()	crow_example_chat_main()
+#define main	crow_example_chat_main
 #endif
 
 // To see how it works go on {ip}:40080 but I just got it working with external build (not directly in IDE, I guess a problem with dependency)
-int main()
+int main(void)
 {
     crow::SimpleApp app;
     crow::mustache::set_base(".");

@@ -1,11 +1,13 @@
 #define CROW_MAIN
 #include "crow.h"
+#include "crow/monolithic_examples.h"
+
 
 #if defined(BUILD_MONOLITHIC)
-#define main()	crow_hello_world_main()
+#define main	crow_hello_world_main
 #endif
 
-int main()
+int main(void)
 {
     crow::SimpleApp app;
 

@@ -1,5 +1,6 @@
 #define CROW_MAIN
 #include "crow_all.h"
+#include "crow/monolithic_examples.h"
 
 #include <sstream>
 
@@ -10,11 +11,13 @@ class ExampleLogHandler : public crow::ILogHandler {
         }
 };
 
+
+
 #if defined(BUILD_MONOLITHIC)
-#define main()	crow_example_with_all_main()
+#define main	crow_example_with_all_main
 #endif
 
-int main()
+int main(void)
 {
     crow::SimpleApp app;
 

@@ -1,5 +1,6 @@
 #define CROW_MAIN
 #include "crow.h"
+#include "crow/monolithic_examples.h"
 
 #include <sstream>
 
@@ -38,11 +39,13 @@ struct ExampleMiddleware
     }
 };
 
+
+
 #if defined(BUILD_MONOLITHIC)
-#define main()	crow_example_basic_main()
+#define main	crow_example_basic_main
 #endif
 
-int main()
+int main(void)
 {
     crow::App<ExampleMiddleware> app;
 

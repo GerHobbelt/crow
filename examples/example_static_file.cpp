@@ -3,14 +3,15 @@
 //#define CROW_DISABLE_STATIC_DIR
 #define CROW_MAIN
 #include "crow.h"
+#include "crow/monolithic_examples.h"
+
 
 #if defined(BUILD_MONOLITHIC)
-#define main()	crow_example_static_file_main()
+#define main	crow_example_static_file_main
 #endif
 
-int main()
+int main(void)
 {
-
 	//Crow app initialization
 	crow::SimpleApp app;
 

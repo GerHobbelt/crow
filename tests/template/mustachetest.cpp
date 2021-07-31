@@ -5,6 +5,7 @@
 
 #include "crow/json.h"
 #include "crow/mustache.h"
+#include "crow/monolithic_examples.h"
 
 using namespace std;
 using namespace crow;
@@ -16,11 +17,12 @@ string read_all(const string& filename)
   return {istreambuf_iterator<char>(is), istreambuf_iterator<char>()};
 }
 
+
 #if defined(BUILD_MONOLITHIC)
-#define main()	crow_mustache_main()
+#define main	crow_mustache_main
 #endif
 
-int main()
+int main(void)
 {
   auto data = json::load(read_all("data"));
   auto templ = compile(read_all("template"));
