@@ -2,7 +2,7 @@
 
 namespace crow {
 
-#ifdef CROW_MAIN
+#if defined(CROW_MAIN) && !defined(BUILD_MONOLITHIC)
   char VERSION[] = "master";
 #else
   extern char VERSION[];
