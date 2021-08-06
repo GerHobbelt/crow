@@ -10,7 +10,7 @@
 
 namespace crow
 {
-    enum class HTTPMethod
+    enum class HTTPMethod : char
     {
 #if 0        // DELETE is defined in winnt.h and clashes with our enum below
         DELETE = 0,
@@ -70,7 +70,7 @@ namespace crow
         }
     }
 
-    enum class ParamType
+    enum class ParamType : char
     {
         INT,
         UINT,
