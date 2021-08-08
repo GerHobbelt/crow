@@ -25,7 +25,7 @@ namespace crow
 #if defined(CROW_MAIN) && !defined(BUILD_MONOLITHIC)
     uint16_t INVALID_BP_ID{0xFFFF};
 #else
-    extern uint16_t INVALID_BP_ID{0xFFFF};
+    extern uint16_t INVALID_BP_ID;
 #endif
     /// A base class for all rules.
 
