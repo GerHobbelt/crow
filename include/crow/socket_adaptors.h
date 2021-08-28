@@ -17,7 +17,7 @@ namespace crow
 {
     using namespace boost;
     using tcp = asio::ip::tcp;
-
+#ifndef CROW_ENABLE_SSL
     ///A wrapper for the asio::ip::tcp::socket and asio::ssl::stream
     struct SocketAdaptor
     {
@@ -87,7 +87,7 @@ namespace crow
         tcp::socket socket_;
     };
 
-#ifdef CROW_ENABLE_SSL
+#else
     struct SSLAdaptor
     {
         using context = boost::asio::ssl::context;
