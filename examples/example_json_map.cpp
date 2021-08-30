@@ -15,7 +15,7 @@ int main(void)
 
 // simple json response using a map
 // To see it in action enter {ip}:18080/json
-// it shoud show amessage before zmessage despite adding zmessage first.
+// it should show `amessage` before `zmessage` despite adding `zmessage` first.
 CROW_ROUTE(app, "/json")
 ([]{
     crow::json::wvalue x({{"zmessage", "Hello, World!"},

@@ -156,7 +156,7 @@ namespace crow
 
                     size_t found_crlf = lines.find(crlf);
                     std::string line = lines.substr(0, found_crlf);
-                    lines.erase(0, found_crlf +2);
+                    lines.erase(0, found_crlf + 2);
                     //add the header if available
                     if (!line.empty())
                     {
