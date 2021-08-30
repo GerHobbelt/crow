@@ -10,7 +10,7 @@
 /* Define if ssize_t is not an available type in sys/types.h. */
 #if defined(_MSC_VER)
 #if defined(_WIN64)
-typedef __in64 ssize_t;
+typedef __int64 ssize_t;
 #else
 typedef long ssize_t;
 #endif
@@ -207,17 +207,17 @@ namespace crow
         };
 
 
-        struct sting_view
+        struct string_view
         {
-            sting_view()
+            string_view()
                     : c_str(nullptr)
                     , size(0){};
 
-            sting_view(const char *str, int isize)
+            string_view(const char *str, int isize)
                     : c_str(str)
                     , size(isize){};
 
-            sting_view(const std::string &str)
+            string_view(const std::string &str)
                     : c_str(str.c_str())
                     , size(str.size()){};
 
@@ -249,7 +249,7 @@ namespace crow
             int size;
         };
 
-        inline ssize_t strpos(sting_view &str1, const std::string &str2)
+        inline ssize_t strpos(string_view &str1, const std::string &str2)
         {
             const char *ret = strstr(str1.c_str, str2.c_str());
             if (ret) {
@@ -263,7 +263,7 @@ namespace crow
             std::vector<header>
                     headers; ///< (optional) The first part before the data, Contains information regarding the type of data and encoding
 
-            sting_view body; ///< The actual data in the part
+            string_view body; ///< The actual data in the part
         };
 
         struct message_view
@@ -339,12 +339,12 @@ namespace crow
 
                 std::string delimiter = dd + boundary;
 
-                sting_view body_view(body);
+                string_view body_view(body);
 
                 while (memcmp(body_view.c_str, crlf.c_str(), 2)) {
                     size_t found = strpos(body_view, delimiter);
 
-                    sting_view section(body_view.c_str, std::max(0, static_cast<int>(found)));
+                    string_view section(body_view.c_str, std::max(0, static_cast<int>(found)));
 
                     //+2 is the CRLF
                     //We don't check it and delete it so that the same delimiter can be used for
@@ -358,7 +358,7 @@ namespace crow
                 return sections;
             }
 
-            part_view parse_section(sting_view &section)
+            part_view parse_section(string_view &section)
             {
                 static const std::string crlf2 = crlf + crlf;
                 struct part_view to_return;
