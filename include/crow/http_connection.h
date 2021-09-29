@@ -443,6 +443,12 @@ namespace crow
                 buffers_.emplace_back(keep_alive_tag.data(), keep_alive_tag.size());
                 buffers_.emplace_back(crlf.data(), crlf.size());
             }
+            else if (close_connection_ && parser_.check_version(1, 1))
+            {
+              static std::string close_tag = "Connection: close";
+              buffers_.emplace_back(close_tag.data(), close_tag.size());
+              buffers_.emplace_back(crlf.data(), crlf.size());
+            }
 
             buffers_.emplace_back(crlf.data(), crlf.size());
             res_body_copy_.swap(res.body);
