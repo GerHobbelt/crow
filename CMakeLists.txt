@@ -18,10 +18,15 @@ endif()
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-# Default to build type "Release"
+# Default to build type "Release" unless tests are being built
 if(NOT CMAKE_BUILD_TYPE)
-	message(STATUS "No build type selected, default to Release")
-	set(CMAKE_BUILD_TYPE "Release")
+	if (NOT CROW_BUILD_TESTS)
+		message(STATUS "No build type selected, default to Release")
+		set(CMAKE_BUILD_TYPE "Release")
+	else()
+		message(STATUS "No build type selected but tests are being built, default to Debug")
+		set(CMAKE_BUILD_TYPE "Debug")
+	endif()
 endif()
 
 #####################################
@@ -92,6 +97,8 @@ if(NOT MSVC AND CROW_BUILD_TESTS)
 	endif()
 	if(NOT CROW_ENABLE_SSL)
 		message(STATUS "SSL tests are omitted. (Configure with CROW_ENABLE_SSL=ON to enable them)")
+	else()
+		add_test(NAME ssl_test COMMAND ${CMAKE_CURRENT_BINARY_DIR}/tests/ssl/ssltest)
 	endif()
 
 	add_subdirectory(tests)
@@ -126,7 +133,12 @@ if(CROW_INSTALL)
 endif()
 
 set(CPACK_GENERATOR "DEB")
+set(CPACK_PACKAGE_NAME "Crow")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "CrowCpp")
+set(CPACK_PACKAGE_VENDOR "CrowCpp")
+set(CPACK_PACKAGE_DESCRIPTION "A Fast and Easy to use C++ microframework for the web.")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://crowcpp.org")
+set(CPACK_DEBIAN_PACKAGE_DEBUG OFF)
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
 include(CPack)
