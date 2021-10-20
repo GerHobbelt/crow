@@ -181,6 +181,21 @@ namespace crow
             return *this;
         }
 
+        /// Set a response body size (in bytes) beyond which Crow automatically streams responses (Default is 1MiB)
+
+        ///
+        /// Any streamed response is unaffected by Crow's timer, and therefore won't timeout before a response is fully sent.
+        self_t& stream_threshold(size_t threshold)
+        {
+            res_stream_threshold_ = threshold;
+            return *this;
+        }
+
+        size_t& stream_threshold()
+        {
+            return res_stream_threshold_;
+        }
+
         self_t& register_blueprint(Blueprint& blueprint)
         {
             router_.register_blueprint(blueprint);
@@ -230,16 +245,18 @@ namespace crow
                   res.end();
                 });
 
-                for (auto& bp : router_.blueprints())
-                {
-                    if (!bp->static_dir().empty())
+                if (!router_.blueprints().empty()){
+                    for (Blueprint* bp : router_.blueprints())
                     {
-                        bp->new_rule_tagged<crow::black_magic::get_parameter_tag(CROW_STATIC_ENDPOINT)>(CROW_STATIC_ENDPOINT)
-                        ([bp](crow::response& res, std::string file_path_partial)
+                        if (!bp->static_dir().empty())
                         {
-                          res.set_static_file_info(bp->static_dir() + '/' + file_path_partial);
-                          res.end();
-                        });
+                            bp->new_rule_tagged<crow::black_magic::get_parameter_tag(CROW_STATIC_ENDPOINT)>(CROW_STATIC_ENDPOINT)
+                            ([bp](crow::response& res, std::string file_path_partial)
+                            {
+                              res.set_static_file_info(bp->static_dir() + '/' + file_path_partial);
+                              res.end();
+                            });
+                        }
                     }
                 }
 #endif
@@ -411,6 +428,7 @@ namespace crow
         bool validated_ = false;
         std::string server_name_ = std::string("Crow/") + VERSION;
         std::string bindaddr_ = "0.0.0.0";
+        size_t res_stream_threshold_ = 1048576;
         Router router_;
 
 #ifdef CROW_ENABLE_COMPRESSION
