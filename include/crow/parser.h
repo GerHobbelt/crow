@@ -114,6 +114,10 @@ namespace crow
             };
 
             int nparsed = http_parser_execute(this, &settings_, buffer, length);
+            if (http_errno != HPE_OK)
+            {
+                return false;
+            }
             return nparsed == length;
         }
 
