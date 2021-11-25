@@ -1,5 +1,4 @@
 // test for #define CROW_ENABLE_SSL, which should've been set up in crow/settings.h
-#define CROW_MAIN
 #include "crow.h"
 #include "crow/monolithic_examples.h"
 
@@ -23,7 +22,7 @@ int main(void)
 
     // Use .pem file
     //app.port(18080).ssl_file("test.pem").run();
-    
+
     // Use custom context; see boost::asio::ssl::context
     /*
      * crow::ssl_context_t ctx;

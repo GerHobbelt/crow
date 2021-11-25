@@ -6,13 +6,7 @@
 #include <string>
 
 namespace crow {
-
-#ifdef CROW_MAIN
-	// https://docs.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-error-lnk2005?view=msvc-160
-#if defined(_MSC_VER)
-	__declspec(selectany)
-#endif
-	std::unordered_map<std::string, std::string> mime_types {
+    const std::unordered_map<std::string, std::string> mime_types {
         {"shtml", "text/html"},
         {"htm", "text/html"},
         {"html", "text/html"},
@@ -122,7 +116,4 @@ namespace crow {
         {"wmv", "video/x-ms-wmv"},
         {"avi", "video/x-msvideo"}
     };
-#else
-    extern std::unordered_map<std::string, std::string> mime_types;
-#endif
 }

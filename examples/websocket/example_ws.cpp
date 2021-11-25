@@ -1,4 +1,3 @@
-#define CROW_MAIN
 #include "crow.h"
 #include "crow/monolithic_examples.h"
 
@@ -44,7 +43,7 @@ int main(void)
         gethostname(name, 256);
         crow::mustache::context x;
         x["servername"] = name;
-	
+
         auto page = crow::mustache::load("ws.html");
         return page.render(x);
      });

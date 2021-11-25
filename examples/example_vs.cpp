@@ -1,4 +1,3 @@
-#define CROW_MAIN
 #include "crow.h"
 #include "crow/monolithic_examples.h"
 
@@ -11,7 +10,7 @@ class ExampleLogHandler : public crow::ILogHandler {
         }
 };
 
-struct ExampleMiddleware 
+struct ExampleMiddleware
 {
     std::string message;
 
@@ -132,7 +131,7 @@ int main(void)
     app.route_dynamic("/params")
     ([](const crow::request& req){
         std::ostringstream os;
-        os << "Params: " << req.url_params << "\n\n"; 
+        os << "Params: " << req.url_params << "\n\n";
         os << "The key 'foo' was " << (req.url_params.get("foo") == nullptr ? "not " : "") << "found.\n";
         if(req.url_params.get("pew") != nullptr) {
             double countD = boost::lexical_cast<double>(req.url_params.get("pew"));
@@ -144,7 +143,7 @@ int main(void)
             os << " - " << countVal << '\n';
         }
         return crow::response{os.str()};
-    });    
+    });
 
     // ignore all log
     crow::logger::setLogLevel(crow::LogLevel::Debug);
