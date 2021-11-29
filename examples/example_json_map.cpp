@@ -12,19 +12,19 @@ int main(void)
 {
     crow::SimpleApp app;
 
-// simple json response using a map
-// To see it in action enter {ip}:18080/json
-// it should show `amessage` before `zmessage` despite adding `zmessage` first.
-CROW_ROUTE(app, "/json")
-([]{
-    crow::json::wvalue x({{"zmessage", "Hello, World!"},
-                          {"amessage", "Hello, World2!"}});
-    return x;
-});
+    // simple json response using a map
+    // To see it in action enter {ip}:18080/json
+    // it should show `amessage` before `zmessage` despite adding `zmessage` first.
+    CROW_ROUTE(app, "/json")
+    ([] {
+        crow::json::wvalue x({{"zmessage", "Hello, World!"},
+                              {"amessage", "Hello, World2!"}});
+        return x;
+    });
 
-app.port(18080)
-    .multithreaded()
-    .run();
+    app.port(18080)
+      .multithreaded()
+      .run();
 
 // when we get here, we may assume failure as the server code above should run indefinitely.
 return EXIT_FAILURE;

@@ -13,10 +13,9 @@
 namespace crow
 {
     /// A wrapper for `nodejs/http-parser`.
-
-    /// Used to generate a \ref crow.request from the TCP socket buffer.
     ///
-    template <typename Handler>
+    /// Used to generate a \ref crow.request from the TCP socket buffer.
+    template<typename Handler>
     struct HTTPParser : public http_parser
     {
         static int on_message_begin(http_parser* self_)
@@ -28,7 +27,7 @@ namespace crow
         static int on_url(http_parser* self_, const char* at, size_t length)
         {
             HTTPParser* self = static_cast<HTTPParser*>(self_);
-            self->raw_url.insert(self->raw_url.end(), at, at+length);
+            self->raw_url.insert(self->raw_url.end(), at, at + length);
             return 0;
         }
         static int on_header_field(http_parser* self_, const char* at, size_t length)
@@ -41,11 +40,11 @@ namespace crow
                     {
                         self->headers.emplace(std::move(self->header_field), std::move(self->header_value));
                     }
-                    self->header_field.assign(at, at+length);
+                    self->header_field.assign(at, at + length);
                     self->header_building_state = 1;
                     break;
                 case 1:
-                    self->header_field.insert(self->header_field.end(), at, at+length);
+                    self->header_field.insert(self->header_field.end(), at, at + length);
                     break;
             }
             return 0;
@@ -56,11 +55,11 @@ namespace crow
             switch (self->header_building_state)
             {
                 case 0:
-                    self->header_value.insert(self->header_value.end(), at, at+length);
+                    self->header_value.insert(self->header_value.end(), at, at + length);
                     break;
                 case 1:
                     self->header_building_state = 0;
-                    self->header_value.assign(at, at+length);
+                    self->header_value.assign(at, at + length);
                     break;
             }
             return 0;
@@ -78,7 +77,7 @@ namespace crow
         static int on_body(http_parser* self_, const char* at, size_t length)
         {
             HTTPParser* self = static_cast<HTTPParser*>(self_);
-            self->body.insert(self->body.end(), at, at+length);
+            self->body.insert(self->body.end(), at, at + length);
             return 0;
         }
         static int on_message_complete(http_parser* self_)
@@ -92,8 +91,8 @@ namespace crow
             self->process_message();
             return 0;
         }
-        HTTPParser(Handler* handler) :
-            handler_(handler)
+        HTTPParser(Handler* handler):
+          handler_(handler)
         {
             http_parser_init(this, HTTP_REQUEST);
         }
@@ -103,14 +102,14 @@ namespace crow
         bool feed(const char* buffer, int length)
         {
             const static http_parser_settings settings_{
-                on_message_begin,
-                on_url,
-                nullptr,
-                on_header_field,
-                on_header_value,
-                on_headers_complete,
-                on_body,
-                on_message_complete,
+              on_message_begin,
+              on_url,
+              nullptr,
+              on_header_field,
+              on_header_value,
+              on_headers_complete,
+              on_body,
+              on_message_complete,
             };
 
             int nparsed = http_parser_execute(this, &settings_, buffer, length);
@@ -154,10 +153,10 @@ namespace crow
             return request{static_cast<HTTPMethod>(method), std::move(raw_url), std::move(url), std::move(url_params), std::move(headers), std::move(body)};
         }
 
-		bool is_upgrade() const
-		{
-			return upgrade;
-		}
+        bool is_upgrade() const
+        {
+            return upgrade;
+        }
 
         bool check_version(int major, int minor) const
         {
@@ -176,4 +175,4 @@ namespace crow
 
         Handler* handler_; ///< This is currently an HTTP connection object (\ref crow.Connection).
     };
-}
+} // namespace crow
