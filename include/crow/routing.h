@@ -718,7 +718,7 @@ namespace crow
         Trie()
         {}
 
-        ///Check whether or not the trie is empty.
+        /// Check whether or not the trie is empty.
         bool is_empty()
         {
             return head_.children.empty();

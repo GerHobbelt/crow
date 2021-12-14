@@ -97,8 +97,9 @@ namespace crow
             http_parser_init(this, HTTP_REQUEST);
         }
 
-        // return false on error
         /// Parse a buffer into the different sections of an HTTP request.
+		///
+        /// Return false on error
         bool feed(const char* buffer, int length)
         {
             const static http_parser_settings settings_{

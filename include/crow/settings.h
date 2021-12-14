@@ -80,3 +80,11 @@
 #define _WIN32_WINNT _WIN32_WINNT_WIN10
 #endif
 #endif
+
+#if defined(__GNUC__) && __GNUC__ == 8 && __GNUC_MINOR__ < 4
+#if __cplusplus > 201103L
+#define CROW_GCC83_WORKAROUND
+#else
+#error "GCC 8.1 - 8.3 has a bug that prevents crow from compiling with C++11. Please update GCC to > 8.3 or use C++ > 11."
+#endif
+#endif

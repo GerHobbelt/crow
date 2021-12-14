@@ -34,7 +34,7 @@ namespace crow
             std::unordered_map<std::string, std::string> params; ///< The parameters of the header, come after the `value`
         };
 
-        ///One part of the multipart message
+        /// One part of the multipart message
         ///
         /// It is usually separated from other sections by a `boundary`
         struct part
@@ -273,7 +273,7 @@ namespace crow
                 return crow::get_header_value(headers, key);
             }
 
-            ///Represent all parts as a string (**does not include message headers**)
+            /// Represent all parts as a string (**does not include message headers**)
             const std::string dump()
             {
                 std::stringstream str;
@@ -287,7 +287,7 @@ namespace crow
                 return str.str();
             }
 
-            ///Represent an individual part as a string
+            /// Represent an individual part as a string
             const std::string dump(int part_)
             {
                 std::stringstream str;
@@ -304,7 +304,7 @@ namespace crow
                 return str.str();
             }
 
-            ///Default constructor using default values
+            /// Default constructor using default values
             message_view(const ci_map &headers, const std::string &boundary, const std::vector<part_view> &sections)
                     : headers(headers)
                     , boundary(boundary)
@@ -312,7 +312,7 @@ namespace crow
             {
             }
 
-            ///Create a multipart message from a request data
+            /// Create a multipart message from a request data
             message_view(const request &req)
                     : headers(req.headers)
                     , boundary(get_boundary(get_header_value("Content-Type")))
@@ -342,9 +342,9 @@ namespace crow
 
                     string_view section(body_view.c_str, std::max(0, static_cast<int>(found)));
 
-                    //+2 is the CRLF
-                    //We don't check it and delete it so that the same delimiter can be used for
-                    //the last delimiter (--delimiter--CRLF).
+                    // +2 is the CRLF
+                    // We don't check it and delete it so that the same delimiter can be used for
+                    // the last delimiter (--delimiter--CRLF).
                     body_view.erase(found + delimiter.length() + 2);
 
                     if (section.size) {
@@ -367,7 +367,7 @@ namespace crow
 
                 parse_section_head(head_line, to_return);
 
-                //to_return.body(body.substr(section.c_str-body.c_str(), static_cast<int>(max(0, static_cast<int>(section.size - 2))));
+                // to_return.body(body.substr(section.c_str-body.c_str(), static_cast<int>(max(0, static_cast<int>(section.size - 2))));
                 to_return.body.set(section.c_str, static_cast<int>(std::max(0, static_cast<int>(section.size - 2))));
 
                 return to_return;
@@ -381,7 +381,7 @@ namespace crow
                     size_t found_cr = lines.find(crlf);
                     std::string line = lines.substr(0, found_cr);
                     lines.erase(0, found_cr + 2);
-                    //add the header if available
+                    // add the header if available
                     if (!line.empty()) {
                         size_t found = line.find("; ");
                         std::string header = line.substr(0, found);
@@ -396,7 +396,7 @@ namespace crow
                                                                            header.substr(header_split + 2));
                     }
 
-                    //add the parameters
+                    // add the parameters
                     while (!line.empty()) {
                         size_t found = line.find("; ");
                         std::string param = line.substr(0, found);

@@ -296,7 +296,7 @@ namespace crow
                 return static_cast<int>(i());
             }
 
-            ///Return any json value (not object or list) as a string.
+            /// Return any json value (not object or list) as a string.
             explicit operator std::string() const
             {
 #ifndef CROW_JSON_NO_ERROR_CHECK
@@ -406,7 +406,7 @@ namespace crow
                 return detail::r_string{start_, end_};
             }
 
-            ///The list or object value
+            /// The list or object value
             std::vector<rvalue> lo()
             {
 #ifndef CROW_JSON_NO_ERROR_CHECK
@@ -685,7 +685,7 @@ namespace crow
                 lremain_--;
             }
 
-            /// determines num_type from the string.
+            /// Determines num_type from the string.
             void determine_num_type()
             {
                 if (t_ != type::Number)
@@ -1223,7 +1223,7 @@ namespace crow
 
         /// JSON write value.
         ///
-        /// Value can mean any json value, including a JSON object.
+        /// Value can mean any json value, including a JSON object.<br>
         /// Write means this class is used to primarily assemble JSON objects using keys and values and export those into a string.
         class wvalue : public returnable
         {

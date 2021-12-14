@@ -189,7 +189,8 @@ namespace crow
           std::tuple<Middlewares...>* middlewares,
           std::function<std::string()>& get_cached_date_str_f,
           detail::task_timer& task_timer,
-          typename Adaptor::context* adaptor_ctx_):
+          typename Adaptor::context* adaptor_ctx_,
+          std::atomic<unsigned int>& queue_length):
           adaptor_(io_service, adaptor_ctx_),
           handler_(handler),
           parser_(this),
@@ -197,7 +198,8 @@ namespace crow
           middlewares_(middlewares),
           get_cached_date_str(get_cached_date_str_f),
           task_timer_(task_timer),
-          res_stream_threshold_(handler->stream_threshold())
+          res_stream_threshold_(handler->stream_threshold()),
+          queue_length_(queue_length)
         {
 #ifdef CROW_ENABLE_DEBUG
             connectionCount++;
@@ -528,7 +530,18 @@ namespace crow
         {
             is_writing = true;
             boost::asio::write(adaptor_.socket(), buffers_);
-            res.do_stream_file(adaptor_);
+
+            if (res.file_info.statResult == 0)
+            {
+                std::ifstream is(res.file_info.path.c_str(), std::ios::in | std::ios::binary);
+                char buf[16384];
+                while (is.read(buf, sizeof(buf)).gcount() > 0)
+                {
+                    std::vector<asio::const_buffer> buffers;
+                    buffers.push_back(boost::asio::buffer(buf));
+                    do_write_sync(buffers);
+                }
+            }
 
             res.end();
             res.clear();
@@ -554,8 +567,30 @@ namespace crow
             else
             {
                 is_writing = true;
-                boost::asio::write(adaptor_.socket(), buffers_);
-                res.do_stream_body(adaptor_);
+                boost::asio::write(adaptor_.socket(), buffers_); // Write the response start / headers
+                if (res.body.length() > 0)
+                {
+                    std::string buf;
+                    std::vector<asio::const_buffer> buffers;
+
+                    while (res.body.length() > 16384)
+                    {
+                        //buf.reserve(16385);
+                        buf = res.body.substr(0, 16384);
+                        res.body = res.body.substr(16384);
+                        buffers.clear();
+                        buffers.push_back(boost::asio::buffer(buf));
+                        do_write_sync(buffers);
+                    }
+                    // Collect whatever is left (less than 16KB) and send it down the socket
+                    // buf.reserve(is.length());
+                    buf = res.body;
+                    res.body.clear();
+
+                    buffers.clear();
+                    buffers.push_back(boost::asio::buffer(buf));
+                    do_write_sync(buffers);
+                }
 
                 res.end();
                 res.clear();
@@ -639,12 +674,38 @@ namespace crow
               });
         }
 
+        inline void do_write_sync(std::vector<asio::const_buffer>& buffers)
+        {
+
+            boost::asio::write(adaptor_.socket(), buffers, [&](std::error_code ec, std::size_t) {
+                if (!ec)
+                {
+                    if (close_connection_)
+                    {
+                        adaptor_.shutdown_write();
+                        adaptor_.close();
+                        CROW_LOG_DEBUG << this << " from write (sync)(1)";
+                        check_destroy();
+                    }
+                    return false;
+                }
+                else
+                {
+                    CROW_LOG_ERROR << ec << " - happened while sending buffers";
+                    CROW_LOG_DEBUG << this << " from write (sync)(2)";
+                    check_destroy();
+                    return true;
+                }
+            });
+        }
+
         void check_destroy()
         {
             CROW_LOG_DEBUG << this << " is_reading " << is_reading << " is_writing " << is_writing;
             if (!is_reading && !is_writing)
             {
-                CROW_LOG_DEBUG << this << " delete (idle) ";
+                queue_length_--;
+                CROW_LOG_DEBUG << this << " delete (idle) (queue length: " << queue_length_ << ')';
                 delete this;
             }
         }
@@ -704,6 +765,8 @@ namespace crow
         detail::task_timer& task_timer_;
 
         size_t res_stream_threshold_;
+
+        std::atomic<unsigned int>& queue_length_;
     };
 
 } // namespace crow
