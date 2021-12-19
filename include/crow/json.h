@@ -88,6 +88,7 @@ namespace crow
             String,
             List,
             Object,
+            Function
         };
 
         inline const char* get_type_str(type t)
@@ -100,6 +101,7 @@ namespace crow
                 case type::List: return "List";
                 case type::String: return "String";
                 case type::Object: return "Object";
+                case type::Function: return "Function";
                 default: return "Unknown";
             }
         }
@@ -767,6 +769,7 @@ namespace crow
                         os << '}';
                     }
                     break;
+                    case type::Function: os << "custom function"; break;
                 }
                 return os;
             }
@@ -1259,10 +1262,11 @@ namespace crow
                   si(value) {}
                 constexpr number(double value) noexcept:
                   d(value) {}
-            } num;                     ///< Value if type is a number.
-            std::string s;             ///< Value if type is a string.
-            std::unique_ptr<list> l;   ///< Value if type is a list.
-            std::unique_ptr<object> o; ///< Value if type is a JSON object.
+            } num;                                      ///< Value if type is a number.
+            std::string s;                              ///< Value if type is a string.
+            std::unique_ptr<list> l;                    ///< Value if type is a list.
+            std::unique_ptr<object> o;                  ///< Value if type is a JSON object.
+            std::function<std::string(std::string&)> f; ///< Value if type is a function (C++ lambda)
 
         public:
             wvalue():
@@ -1346,6 +1350,7 @@ namespace crow
                     case type::Null:
                     case type::False:
                     case type::True:
+                    case type::Function:
                         return;
                     case type::Number:
                         nt = r.nt();
@@ -1405,6 +1410,8 @@ namespace crow
                         o = std::unique_ptr<object>(new object{});
                         o->insert(r.o->begin(), r.o->end());
                         return;
+                    case type::Function:
+                        f = r.f;
                 }
             }
 
@@ -1637,6 +1644,14 @@ namespace crow
                 return *this;
             }
 
+            wvalue& operator=(std::function<std::string(std::string&)>&& func)
+            {
+                reset();
+                t_ = type::Function;
+                f = std::move(func);
+                return *this;
+            }
+
             wvalue& operator[](unsigned index)
             {
                 if (t_ != type::List)
@@ -1678,6 +1693,13 @@ namespace crow
                     result.push_back(kv.first);
                 }
                 return result;
+            }
+
+            std::string execute(std::string txt = "") const //Not using reference because it cannot be used with a default rvalue
+            {
+                if (t_ != type::Function)
+                    return "";
+                return f(txt);
             }
 
             /// If the wvalue is a list, it returns the length of the list, otherwise it returns 1.
@@ -1725,6 +1747,8 @@ namespace crow
                         }
                         return sum + 2;
                     }
+                    case type::Function:
+                        return 0;
                 }
                 return 1;
             }
@@ -1851,6 +1875,10 @@ namespace crow
                         out.push_back('}');
                     }
                     break;
+
+                    case type::Function:
+                        out += "custom function";
+                        break;
                 }
             }
 
