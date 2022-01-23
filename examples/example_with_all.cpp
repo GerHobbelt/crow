@@ -3,6 +3,7 @@
 
 #include <sstream>
 
+
 class ExampleLogHandler : public crow::ILogHandler
 {
 public:
@@ -72,7 +73,7 @@ int main(void)
         return crow::response(os.str());
     });
 
-    // example which uses only response as a paramter without
+    // example which uses only response as a parameter without
     // request being a parameter.
     CROW_ROUTE(app, "/add/<int>/<int>")
     ([](crow::response& res, int a, int b) {
@@ -82,7 +83,7 @@ int main(void)
         res.end();
     });
 
-    // Compile error with message "Handler type is mismatched with URL paramters"
+    // Compile error with message "Handler type is mismatched with URL parameters"
     //CROW_ROUTE(app,"/another/<int>")
     //([](int a, int b){
     //return crow::response(500);
