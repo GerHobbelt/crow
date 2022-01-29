@@ -8,8 +8,15 @@
 
 using namespace std;
 
+
+extern "C" int fzPushHeapDbgPurpose(const char* s, int l);
+extern "C" int fzPopHeapDbgPurpose(int related_dummy, int l);
+static int CROW_CHAT_HEAPDBG_SECTION_START = fzPushHeapDbgPurpose(__FILE__, __LINE__);
+
 static vector<string> msgs;
 static vector<pair<crow::response*, decltype(chrono::steady_clock::now())>> ress;
+
+static int HEAPDBG_SECTION_END = fzPopHeapDbgPurpose(CROW_CHAT_HEAPDBG_SECTION_START, __LINE__);
 
 static void broadcast(const string& msg)
 {

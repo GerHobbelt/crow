@@ -5,6 +5,11 @@
 #include <unordered_map>
 #include <string>
 
+
+extern "C" int fzPushHeapDbgPurpose(const char* s, int l);
+extern "C" int fzPopHeapDbgPurpose(int related_dummy, int l);
+static int CROW_MIME_HEAPDBG_SECTION_START = fzPushHeapDbgPurpose(__FILE__, __LINE__);
+
 namespace crow
 {
     const std::unordered_map<std::string, std::string> mime_types{
@@ -119,3 +124,5 @@ namespace crow
       {"wmv", "video/x-ms-wmv"},
       {"avi", "video/x-msvideo"}};
 }
+
+static int CROW_MIME_HEAPDBG_SECTION_END = fzPopHeapDbgPurpose(CROW_MIME_HEAPDBG_SECTION_START, __LINE__);

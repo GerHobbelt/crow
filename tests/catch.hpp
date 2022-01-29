@@ -11114,6 +11114,10 @@ namespace Catch {
 // start catch_leak_detector.cpp
 
 #ifdef CATCH_CONFIG_WINDOWS_CRTDBG
+
+#ifndef _CRTDBG_MAP_ALLOC
+#define _CRTDBG_MAP_ALLOC
+#endif
 #include <crtdbg.h>
 
 namespace Catch {
