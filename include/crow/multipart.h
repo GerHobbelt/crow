@@ -19,13 +19,15 @@ typedef long ssize_t;
 #include "crow/http_request.h"
 #include "crow/returnable.h"
 
+
 namespace crow
 {
     /// Encapsulates anything related to processing and organizing `multipart/xyz` messages
     namespace multipart
     {
-        const std::string dd = "--";
-        const std::string crlf = "\r\n";
+		static const char* dd = "--";
+		static const char* crlf = "\r\n";
+		static const char* crlfcrlf = "\r\n\r\n";
 
         /// The first part in a section, contains metadata about the part
         struct header
@@ -136,7 +138,7 @@ namespace crow
             {
                 struct part to_return;
 
-                size_t found = section.find(crlf + crlf);
+                size_t found = section.find(crlfcrlf);
                 std::string head_line = section.substr(0, found + 2);
                 section.erase(0, found + 4);
 
@@ -337,7 +339,7 @@ namespace crow
 
                 string_view body_view(body);
 
-                while (memcmp(body_view.c_str, crlf.c_str(), 2)) {
+                while (memcmp(body_view.c_str, crlf, 2)) {
                     size_t found = strpos(body_view, delimiter);
 
                     string_view section(body_view.c_str, std::max(0, static_cast<int>(found)));
@@ -356,10 +358,9 @@ namespace crow
 
             part_view parse_section(string_view &section)
             {
-                static const std::string crlf2 = crlf + crlf;
                 struct part_view to_return;
 
-                size_t found = strpos(section, crlf2);
+                size_t found = strpos(section, crlfcrlf);
 
                 std::string head_line = section.substr(0, found + 2);
 
