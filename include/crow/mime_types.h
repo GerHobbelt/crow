@@ -5,10 +5,10 @@
 #include <unordered_map>
 #include <string>
 
+#include "crow/debugheap.h"
 
-extern "C" int fzPushHeapDbgPurpose(const char* s, int l);
-extern "C" int fzPopHeapDbgPurpose(int related_dummy, int l);
-static int CROW_MIME_HEAPDBG_SECTION_START = fzPushHeapDbgPurpose(__FILE__, __LINE__);
+
+FZ_HEAPDBG_TRACKER_SECTION_START_MARKER(CROW_MIME_)
 
 namespace crow
 {
@@ -125,4 +125,4 @@ namespace crow
       {"avi", "video/x-msvideo"}};
 }
 
-static int CROW_MIME_HEAPDBG_SECTION_END = fzPopHeapDbgPurpose(CROW_MIME_HEAPDBG_SECTION_START, __LINE__);
+FZ_HEAPDBG_TRACKER_SECTION_END_MARKER(CROW_MIME_)

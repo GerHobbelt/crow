@@ -9,14 +9,12 @@
 using namespace std;
 
 
-extern "C" int fzPushHeapDbgPurpose(const char* s, int l);
-extern "C" int fzPopHeapDbgPurpose(int related_dummy, int l);
-static int CROW_CHAT_HEAPDBG_SECTION_START = fzPushHeapDbgPurpose(__FILE__, __LINE__);
+FZ_HEAPDBG_TRACKER_SECTION_START_MARKER(CROW_CHAT_)
 
 static vector<string> msgs;
 static vector<pair<crow::response*, decltype(chrono::steady_clock::now())>> ress;
 
-static int HEAPDBG_SECTION_END = fzPopHeapDbgPurpose(CROW_CHAT_HEAPDBG_SECTION_START, __LINE__);
+FZ_HEAPDBG_TRACKER_SECTION_END_MARKER(CROW_CHAT_)
 
 static void broadcast(const string& msg)
 {
