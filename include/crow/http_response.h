@@ -229,7 +229,7 @@ namespace crow
                 std::string extension = path.substr(last_dot + 1);
                 std::string mimeType = "";
                 code = 200;
-                this->add_header("Content-length", std::to_string(file_info.statbuf.st_size));
+                this->add_header("Content-Length", std::to_string(file_info.statbuf.st_size));
 
                 if (extension != "")
                 {
@@ -242,6 +242,9 @@ namespace crow
             }
             else
             {
+                body = "";
+                manual_length_header = true;
+                set_header("Content-Length", "0");
                 code = 404;
                 this->end();
             }
