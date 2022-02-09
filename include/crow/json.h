@@ -1774,7 +1774,7 @@ namespace crow
                     {
                         if (v.nt == num_type::Floating_point)
                         {
-                            if (isnan(v.num.d) || isinf(v.num.d))
+                            if (std::isnan(v.num.d) || std::isinf(v.num.d))
                             {
                                 out += "null";
                                 CROW_LOG_WARNING << "Invalid JSON value detected (" << v.num.d << "), value set to null";
