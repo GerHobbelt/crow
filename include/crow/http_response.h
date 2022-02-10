@@ -242,10 +242,8 @@ namespace crow
             }
             else
             {
-                body = "";
-                manual_length_header = true;
-                set_header("Content-Length", "0");
                 code = 404;
+                file_info.path.clear();
                 this->end();
             }
         }
