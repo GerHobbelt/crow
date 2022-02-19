@@ -18,6 +18,7 @@
 #include "crow/http_response.h"
 #include "crow/multipart.h"
 #include "crow/routing.h"
+#include "crow/middleware.h"
 #include "crow/middleware_context.h"
 #include "crow/compression.h"
 #include "crow/http_connection.h"

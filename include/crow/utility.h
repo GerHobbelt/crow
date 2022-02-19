@@ -12,6 +12,15 @@
 #include <unordered_map>
 
 
+// TODO(EDev): Adding C++20's [[likely]] and [[unlikely]] attributes might be useful
+#if defined(__GNUG__) || defined(__clang__)
+#define CROW_LIKELY(X) __builtin_expect(!!(X), 1)
+#define CROW_UNLIKELY(X) __builtin_expect(!!(X), 0)
+#else
+#define CROW_LIKELY(X) (X)
+#define CROW_UNLIKELY(X) (X)
+#endif
+
 namespace crow
 {
     namespace black_magic
@@ -238,6 +247,40 @@ namespace crow
             static constexpr bool value = sizeof(__test<F, Args...>(0)) == sizeof(char);
         };
 
+        // Check Tuple contains type T
+        template<typename T, typename Tuple>
+        struct has_type;
+
+        template<typename T>
+        struct has_type<T, std::tuple<>> : std::false_type
+        {};
+
+        template<typename T, typename U, typename... Ts>
+        struct has_type<T, std::tuple<U, Ts...>> : has_type<T, std::tuple<Ts...>>
+        {};
+
+        template<typename T, typename... Ts>
+        struct has_type<T, std::tuple<T, Ts...>> : std::true_type
+        {};
+
+        // Check F is callable with Args
+        template<typename F, typename... Args>
+        struct is_callable
+        {
+            template<typename F2, typename... Args2>
+            static std::true_type __test(decltype(std::declval<F2>()(std::declval<Args2>()...))*);
+
+            template<typename F2, typename... Args2>
+            static std::false_type __test(...);
+
+            static constexpr bool value = decltype(__test<F, Args...>(nullptr))::value;
+        };
+
+        // Kind of fold expressions in C++11
+        template<bool...>
+        struct bool_pack;
+        template<bool... bs>
+        using all_true = std::is_same<bool_pack<bs..., true>, bool_pack<true, bs...>>;
 
         template<int N>
         struct single_tag_to_type
@@ -695,8 +738,7 @@ namespace crow
                 }
                 else if ((c == '/') || (c == '\\'))
                 {
-                    //TODO(EDev): uncomment below once #332 is merged
-                    if (/*CROW_UNLIKELY(*/ i == 0 /*)*/) //Prevent Unix Absolute Paths (Windows Absolute Paths are prevented with `(c == ':')`)
+                    if (CROW_UNLIKELY(i == 0)) //Prevent Unix Absolute Paths (Windows Absolute Paths are prevented with `(c == ':')`)
                     {
                         data[i] = replacement;
                     }

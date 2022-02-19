@@ -22,11 +22,20 @@ namespace crow
     template<typename Adaptor, typename Handler, typename... Middlewares>
     class Connection;
 
+    namespace detail
+    {
+        template<typename F, typename App, typename... Middlewares>
+        struct handler_middleware_wrapper;
+    } // namespace detail
+
     /// HTTP response
     struct response
     {
         template<typename Adaptor, typename Handler, typename... Middlewares>
         friend class crow::Connection;
+
+        template<typename F, typename App, typename... Middlewares>
+        friend struct crow::detail::handler_middleware_wrapper;
 
         int code{200};    ///< The Status code for the response.
         std::string body; ///< The actual payload containing the response data.
@@ -35,7 +44,7 @@ namespace crow
 #ifdef CROW_ENABLE_COMPRESSION
         bool compressed = true; ///< If compression is enabled and this is false, the individual response will not be compressed.
 #endif
-        bool is_head_response = false;     ///< Whether this is a response to a HEAD request.
+        bool skip_body = false;            ///< Whether this is a response to a HEAD request.
         bool manual_length_header = false; ///< Whether Crow should automatically add a "Content-Length" header.
 
         /// Set the value of an existing header in the response.
@@ -170,7 +179,7 @@ namespace crow
             if (!completed_)
             {
                 completed_ = true;
-                if (is_head_response)
+                if (skip_body)
                 {
                     set_header("Content-Length", std::to_string(body.size()));
                     body = "";
