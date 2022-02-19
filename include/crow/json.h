@@ -821,6 +821,9 @@ namespace crow
 
         inline rvalue load_nocopy_internal(char* data, size_t size)
         {
+            // Defend against excessive recursion
+            static constexpr unsigned max_depth = 10000;
+
             //static const char* escaped = "\"\\/\b\f\n\r\t";
             struct Parser
             {
@@ -903,10 +906,10 @@ namespace crow
                     return {};
                 }
 
-                rvalue decode_list()
+                rvalue decode_list(unsigned depth)
                 {
                     rvalue ret(type::List);
-                    if (crow_json_unlikely(!consume('[')))
+                    if (crow_json_unlikely(!consume('[')) || crow_json_unlikely(depth > max_depth))
                     {
                         ret.set_error();
                         return ret;
@@ -920,7 +923,7 @@ namespace crow
 
                     while (1)
                     {
-                        auto v = decode_value();
+                        auto v = decode_value(depth + 1);
                         if (crow_json_unlikely(!v))
                         {
                             ret.set_error();
@@ -1069,14 +1072,15 @@ namespace crow
                     return {};
                 }
 
-                rvalue decode_value()
+
+                rvalue decode_value(unsigned depth)
                 {
                     switch (*data)
                     {
                         case '[':
-                            return decode_list();
+                            return decode_list(depth + 1);
                         case '{':
-                            return decode_object();
+                            return decode_object(depth + 1);
                         case '"':
                             return decode_string();
                         case 't':
@@ -1123,10 +1127,10 @@ namespace crow
                     //return {};
                 }
 
-                rvalue decode_object()
+                rvalue decode_object(unsigned depth)
                 {
                     rvalue ret(type::Object);
-                    if (crow_json_unlikely(!consume('{')))
+                    if (crow_json_unlikely(!consume('{')) || crow_json_unlikely(depth > max_depth))
                     {
                         ret.set_error();
                         return ret;
@@ -1161,7 +1165,7 @@ namespace crow
                         auto key = t.s();
 
                         ws_skip();
-                        auto v = decode_value();
+                        auto v = decode_value(depth + 1);
                         if (crow_json_unlikely(!v))
                         {
                             ret.set_error();
@@ -1189,7 +1193,7 @@ namespace crow
                 rvalue parse()
                 {
                     ws_skip();
-                    auto ret = decode_value(); // or decode object?
+                    auto ret = decode_value(0); // or decode object?
                     ws_skip();
                     if (ret && *data != '\0')
                         ret.set_error();
