@@ -35,6 +35,6 @@ int main(void)
         return "";
     });
     context ctx(data);
-    cout << templ.render(ctx);
+    cout << templ.render_string(ctx);
     return 0;
 }
