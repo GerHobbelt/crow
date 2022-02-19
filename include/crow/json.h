@@ -18,8 +18,10 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/operators.hpp>
 #include <vector>
+#include <math.h>
 
 #include "crow/returnable.h"
+#include "crow/logging.h"
 
 #if defined(__GNUG__) || defined(__clang__)
 #define crow_json_likely(x) __builtin_expect(x, 1)
@@ -1776,6 +1778,12 @@ namespace crow
                     {
                         if (v.nt == num_type::Floating_point)
                         {
+                            if (isnan(v.num.d) || isinf(v.num.d))
+                            {
+                                out += "null";
+                                CROW_LOG_WARNING << "Invalid JSON value detected (" << v.num.d << "), value set to null";
+                                break;
+                            }
 #ifdef _MSC_VER
 #define MSC_COMPATIBLE_SPRINTF(BUFFER_PTR, FORMAT_PTR, VALUE) sprintf_s((BUFFER_PTR), 128, (FORMAT_PTR), (VALUE))
 #else
