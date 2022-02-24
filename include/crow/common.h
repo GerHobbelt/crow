@@ -109,7 +109,7 @@ namespace crow
         // should not add an item below this line: used for array count
     };
 
-    const char* method_strings[] =
+    constexpr const char* method_strings[] =
       {
         "DELETE",
         "GET",
