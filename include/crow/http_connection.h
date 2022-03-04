@@ -349,7 +349,7 @@ namespace crow
                 buffers_.emplace_back(kv.first.data(), kv.first.size());
                 buffers_.emplace_back(seperator.data(), seperator.size());
                 buffers_.emplace_back(kv.second.data(), kv.second.size());
-                buffers_.emplace_back(crlf.data(), crlf.size());
+                buffers_.emplace_back(crlf, crlf_size);
             }
 
             if (!res.manual_length_header && !res.headers.count("content-length"))
@@ -358,14 +358,14 @@ namespace crow
                 static std::string content_length_tag = "Content-Length: ";
                 buffers_.emplace_back(content_length_tag.data(), content_length_tag.size());
                 buffers_.emplace_back(content_length_.data(), content_length_.size());
-                buffers_.emplace_back(crlf.data(), crlf.size());
+                buffers_.emplace_back(crlf, crlf_size);
             }
             if (!res.headers.count("server"))
             {
                 static std::string server_tag = "Server: ";
                 buffers_.emplace_back(server_tag.data(), server_tag.size());
                 buffers_.emplace_back(server_name_.data(), server_name_.size());
-                buffers_.emplace_back(crlf.data(), crlf.size());
+                buffers_.emplace_back(crlf, crlf_size);
             }
             if (!res.headers.count("date"))
             {
@@ -373,16 +373,16 @@ namespace crow
                 date_str_ = get_cached_date_str();
                 buffers_.emplace_back(date_tag.data(), date_tag.size());
                 buffers_.emplace_back(date_str_.data(), date_str_.size());
-                buffers_.emplace_back(crlf.data(), crlf.size());
+                buffers_.emplace_back(crlf, crlf_size);
             }
             if (add_keep_alive_)
             {
                 static std::string keep_alive_tag = "Connection: Keep-Alive";
                 buffers_.emplace_back(keep_alive_tag.data(), keep_alive_tag.size());
-                buffers_.emplace_back(crlf.data(), crlf.size());
+                buffers_.emplace_back(crlf, crlf_size);
             }
 
-            buffers_.emplace_back(crlf.data(), crlf.size());
+            buffers_.emplace_back(crlf, crlf_size);
         }
 
         void do_write_static()

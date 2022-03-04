@@ -19,6 +19,8 @@ extern int crow_hello_world_main(void);
 extern int crow_example_ssl_main(void);
 extern int crow_example_ws_main(void);
 extern int crow_mustache_main(void);
+extern int crow_example_blueprint_main(void);
+extern int crow_example_middleware_main(void);
 
 #ifdef __cplusplus
 }

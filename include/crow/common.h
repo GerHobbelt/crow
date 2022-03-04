@@ -10,9 +10,12 @@
 
 namespace crow
 {
-    const char cr = '\r';
-    const char lf = '\n';
-    const std::string crlf("\r\n");
+    inline const char cr = '\r';
+	inline const char lf = '\n';
+	inline const char* const crlf = "\r\n";
+	inline const char* const crlfcrlf = "\r\n\r\n";
+	inline const int crlf_size = 2;
+	inline const int crlfcrlf_size = 4;
 
     enum class HTTPMethod : char
     {
@@ -78,8 +81,8 @@ namespace crow
         Lock,
         MkCol,
         Move,
-        Propfind,
-        Proppatch,
+        PropFind,
+        PropPatch,
         Search,
         Unlock,
         Bind,
@@ -97,7 +100,7 @@ namespace crow
         Subscribe,
         Unsubscribe,
 
-        Mkcalendar,
+        MkCalendar,
 
         Link,
         Unlink,
@@ -297,8 +300,8 @@ constexpr crow::HTTPMethod operator"" _method(const char* str, size_t /*len*/)
            crow::black_magic::is_equ_p(str, "LOCK", 4)      ? crow::HTTPMethod::Lock :
            crow::black_magic::is_equ_p(str, "MKCOL", 5)     ? crow::HTTPMethod::MkCol :
            crow::black_magic::is_equ_p(str, "MOVE", 4)      ? crow::HTTPMethod::Move :
-           crow::black_magic::is_equ_p(str, "PROPFIND", 8)  ? crow::HTTPMethod::Propfind :
-           crow::black_magic::is_equ_p(str, "PROPPATCH", 9) ? crow::HTTPMethod::Proppatch :
+           crow::black_magic::is_equ_p(str, "PROPFIND", 8)  ? crow::HTTPMethod::PropFind :
+           crow::black_magic::is_equ_p(str, "PROPPATCH", 9) ? crow::HTTPMethod::PropPatch :
            crow::black_magic::is_equ_p(str, "SEARCH", 6)    ? crow::HTTPMethod::Search :
            crow::black_magic::is_equ_p(str, "UNLOCK", 6)    ? crow::HTTPMethod::Unlock :
            crow::black_magic::is_equ_p(str, "BIND", 4)      ? crow::HTTPMethod::Bind :
@@ -316,13 +319,13 @@ constexpr crow::HTTPMethod operator"" _method(const char* str, size_t /*len*/)
            crow::black_magic::is_equ_p(str, "SUBSCRIBE", 9)    ? crow::HTTPMethod::Subscribe :
            crow::black_magic::is_equ_p(str, "UNSUBSCRIBE", 11) ? crow::HTTPMethod::Unsubscribe :
 
-           crow::black_magic::is_equ_p(str, "MKCALENDAR", 10) ? crow::HTTPMethod::Mkcalendar :
+           crow::black_magic::is_equ_p(str, "MKCALENDAR", 10) ? crow::HTTPMethod::MkCalendar :
 
            crow::black_magic::is_equ_p(str, "LINK", 4)   ? crow::HTTPMethod::Link :
            crow::black_magic::is_equ_p(str, "UNLINK", 6) ? crow::HTTPMethod::Unlink :
 
            crow::black_magic::is_equ_p(str, "SOURCE", 6) ? crow::HTTPMethod::Source :
-                                                           throw std::runtime_error("invalid http method");
+                                                           throw std::runtime_error("invalid HTTP method");
 }
 #endif
 // clang-format on

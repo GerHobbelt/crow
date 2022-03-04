@@ -281,7 +281,6 @@ namespace crow
         /// Run the server
         void run()
         {
-
             validate();
 
 #ifdef CROW_ENABLE_SSL

@@ -66,7 +66,7 @@ typedef struct http_parser_settings http_parser_settings;
  *
  * Returning `2` from on_headers_complete will tell parser that it should not
  * expect neither a body nor any futher responses on this connection. This is
- * useful for handling responses to a CONNECT request which may not contain
+ * useful for handling responses to a Connect request which may not contain
  * `Upgrade` or `Connection: upgrade` headers.
  *
  * http_data_cb does not return data chunks. It will be called arbitrarally
@@ -538,7 +538,7 @@ static const uint8_t normal_url_char[32] = {
   switch (s) {
     case s_req_spaces_before_url:
       /* Proxied requests are followed by scheme of an absolute URI (alpha).
-       * All methods except CONNECT are followed by '/' or '*'.
+       * All methods except Connect are followed by '/' or '*'.
        */
 
       if (ch == '/' || ch == '*') {
@@ -787,21 +787,21 @@ reexecute:
         parser->method = 0;
         parser->index = 1;
         switch (ch) {
-          case 'A': parser->method = (unsigned)HTTPMethod::ACL;                                                              break;
-          case 'B': parser->method = (unsigned)HTTPMethod::BIND;                                                             break;
-          case 'C': parser->method = (unsigned)HTTPMethod::CONNECT;   /* or COPY, CHECKOUT */                                break;
-          case 'D': parser->method = (unsigned)HTTPMethod::DELETE;                                                           break;
-          case 'G': parser->method = (unsigned)HTTPMethod::GET;                                                              break;
-          case 'H': parser->method = (unsigned)HTTPMethod::HEAD;                                                             break;
-          case 'L': parser->method = (unsigned)HTTPMethod::LOCK;      /* or LINK */                                          break;
-          case 'M': parser->method = (unsigned)HTTPMethod::MKCOL;     /* or MOVE, MKACTIVITY, MERGE, M-SEARCH, MKCALENDAR */ break;
-          case 'N': parser->method = (unsigned)HTTPMethod::NOTIFY;                                                           break;
-          case 'O': parser->method = (unsigned)HTTPMethod::OPTIONS;                                                          break;
-          case 'P': parser->method = (unsigned)HTTPMethod::POST;      /* or PROPFIND|PROPPATCH|PUT|PATCH|PURGE */            break;
-          case 'R': parser->method = (unsigned)HTTPMethod::REPORT;    /* or REBIND */                                        break;
-          case 'S': parser->method = (unsigned)HTTPMethod::SUBSCRIBE; /* or SEARCH, SOURCE */                                break;
-          case 'T': parser->method = (unsigned)HTTPMethod::TRACE;                                                            break;
-          case 'U': parser->method = (unsigned)HTTPMethod::UNLOCK;    /* or UNSUBSCRIBE, UNBIND, UNLINK */                   break;
+          case 'A': parser->method = (unsigned)HTTPMethod::Acl;                                                              break;
+          case 'B': parser->method = (unsigned)HTTPMethod::Bind;                                                             break;
+          case 'C': parser->method = (unsigned)HTTPMethod::Connect;   /* or COPY, CHECKOUT */                                break;
+          case 'D': parser->method = (unsigned)HTTPMethod::Delete;                                                           break;
+          case 'G': parser->method = (unsigned)HTTPMethod::Get;                                                              break;
+          case 'H': parser->method = (unsigned)HTTPMethod::Head;                                                             break;
+          case 'L': parser->method = (unsigned)HTTPMethod::Lock;      /* or LINK */                                          break;
+          case 'M': parser->method = (unsigned)HTTPMethod::MkCol;     /* or MOVE, MKACTIVITY, MERGE, M-SEARCH, MKCALENDAR */ break;
+          case 'N': parser->method = (unsigned)HTTPMethod::Notify;                                                           break;
+          case 'O': parser->method = (unsigned)HTTPMethod::Options;                                                          break;
+          case 'P': parser->method = (unsigned)HTTPMethod::Post;      /* or PropFind|PROPPATCH|PUT|PATCH|PURGE */            break;
+          case 'R': parser->method = (unsigned)HTTPMethod::Report;    /* or REBIND */                                        break;
+          case 'S': parser->method = (unsigned)HTTPMethod::Subscribe; /* or SEARCH, SOURCE */                                break;
+          case 'T': parser->method = (unsigned)HTTPMethod::Trace;                                                            break;
+          case 'U': parser->method = (unsigned)HTTPMethod::Unlock;    /* or UNSUBSCRIBE, UNBIND, UNLINK */                   break;
           default:
             CROW_SET_ERRNO(CHPE_INVALID_METHOD);
             goto error;
@@ -833,25 +833,25 @@ reexecute:
             case ((unsigned)HTTPMethod::meth << 16 | pos << 8 | ch): \
               parser->method = (unsigned)HTTPMethod::new_meth; break;
 
-            CROW_XX(POST,      1, 'U', PUT)
-            CROW_XX(POST,      1, 'A', PATCH)
-            CROW_XX(POST,      1, 'R', PROPFIND)
-            CROW_XX(PUT,       2, 'R', PURGE)
-            CROW_XX(CONNECT,   1, 'H', CHECKOUT)
-            CROW_XX(CONNECT,   2, 'P', COPY)
-            CROW_XX(MKCOL,     1, 'O', MOVE)
-            CROW_XX(MKCOL,     1, 'E', MERGE)
-            CROW_XX(MKCOL,     1, '-', MSEARCH)
-            CROW_XX(MKCOL,     2, 'A', MKACTIVITY)
-            CROW_XX(MKCOL,     3, 'A', MKCALENDAR)
-            CROW_XX(SUBSCRIBE, 1, 'E', SEARCH)
-            CROW_XX(SUBSCRIBE, 1, 'O', SOURCE)
-            CROW_XX(REPORT,    2, 'B', REBIND)
-            CROW_XX(PROPFIND,  4, 'P', PROPPATCH)
-            CROW_XX(LOCK,      1, 'I', LINK)
-            CROW_XX(UNLOCK,    2, 'S', UNSUBSCRIBE)
-            CROW_XX(UNLOCK,    2, 'B', UNBIND)
-            CROW_XX(UNLOCK,    3, 'I', UNLINK)
+            CROW_XX(Post,      1, 'U', Put)
+            CROW_XX(Post,      1, 'A', Patch)
+            CROW_XX(Post,      1, 'R', PropFind)
+            CROW_XX(Put,       2, 'R', Purge)
+            CROW_XX(Connect,   1, 'H', Checkout)
+            CROW_XX(Connect,   2, 'P', Copy)
+            CROW_XX(MkCol,     1, 'O', Move)
+            CROW_XX(MkCol,     1, 'E', Merge)
+            CROW_XX(MkCol,     1, '-', MSearch)
+            CROW_XX(MkCol,     2, 'A', MkActivity)
+            CROW_XX(MkCol,     3, 'A', MkCalendar)
+            CROW_XX(Subscribe, 1, 'E', Search)
+            CROW_XX(Subscribe, 1, 'O', Source)
+            CROW_XX(Report,    2, 'B', Rebind)
+            CROW_XX(PropFind,  4, 'P', PropPatch)
+            CROW_XX(Lock,      1, 'I', Link)
+            CROW_XX(Unlock,    2, 'S', Unsubscribe)
+            CROW_XX(Unlock,    2, 'B', Unbind)
+            CROW_XX(Unlock,    3, 'I', Unlink)
 #undef CROW_XX
             default:
               CROW_SET_ERRNO(CHPE_INVALID_METHOD);
@@ -872,7 +872,7 @@ reexecute:
 
         CROW_MARK(url);
         CROW_MARK(url_start);
-        if (parser->method == (unsigned)HTTPMethod::CONNECT) {
+        if (parser->method == (unsigned)HTTPMethod::Connect) {
           parser->state = s_req_server_start;
         }
 
@@ -921,7 +921,7 @@ reexecute:
             break;
           case cr: // No space after URL means no HTTP version. Which means the request is using HTTP/0.9
           case lf:
-            if (CROW_UNLIKELY(parser->method != (unsigned)HTTPMethod::GET)) // HTTP/0.9 doesn't define any method other than GET
+            if (CROW_UNLIKELY(parser->method != (unsigned)HTTPMethod::Get)) // HTTP/0.9 doesn't define any method other than GET
             {
               parser->state = s_dead;
               CROW_SET_ERRNO(CHPE_INVALID_VERSION);
@@ -952,7 +952,7 @@ reexecute:
             parser->state = s_req_http_H;
             break;
           case 'I':
-            if (parser->method == (unsigned)HTTPMethod::SOURCE) {
+            if (parser->method == (unsigned)HTTPMethod::Source) {
               parser->state = s_req_http_I;
               break;
             }
@@ -1606,12 +1606,12 @@ reexecute:
 
         /* Set this here so that on_headers_complete() callbacks can see it */
         parser->upgrade =
-          (parser->flags & F_UPGRADE || parser->method == (unsigned)HTTPMethod::CONNECT);
+          (parser->flags & F_UPGRADE || parser->method == (unsigned)HTTPMethod::Connect);
 
         /* Here we call the headers_complete callback. This is somewhat
          * different than other callbacks because if the user returns 1, we
          * will interpret that as saying that this message has no body. This
-         * is needed for the annoying case of recieving a response to a HEAD
+         * is needed for the annoying case of receiving a response to a HEAD
          * request.
          *
          * We'd like to use CROW_CALLBACK_NOTIFY_NOADVANCE() here but we cannot, so
