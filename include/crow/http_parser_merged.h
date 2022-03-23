@@ -797,7 +797,7 @@ reexecute:
           case 'M': parser->method = (unsigned)HTTPMethod::MkCol;     /* or MOVE, MKACTIVITY, MERGE, M-SEARCH, MKCALENDAR */ break;
           case 'N': parser->method = (unsigned)HTTPMethod::Notify;                                                           break;
           case 'O': parser->method = (unsigned)HTTPMethod::Options;                                                          break;
-          case 'P': parser->method = (unsigned)HTTPMethod::Post;      /* or PropFind|PROPPATCH|PUT|PATCH|PURGE */            break;
+          case 'P': parser->method = (unsigned)HTTPMethod::Post;      /* or PROPFIND|PROPPATCH|PUT|PATCH|PURGE */            break;
           case 'R': parser->method = (unsigned)HTTPMethod::Report;    /* or REBIND */                                        break;
           case 'S': parser->method = (unsigned)HTTPMethod::Subscribe; /* or SEARCH, SOURCE */                                break;
           case 'T': parser->method = (unsigned)HTTPMethod::Trace;                                                            break;
