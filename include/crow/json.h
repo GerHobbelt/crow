@@ -18,11 +18,14 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/operators.hpp>
 #include <vector>
-#include <math.h>
+#include <cmath>
 
 #include "crow/utility.h"
 #include "crow/returnable.h"
 #include "crow/logging.h"
+
+using std::isinf;
+using std::isnan;
 
 
 namespace crow
