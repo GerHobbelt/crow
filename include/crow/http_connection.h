@@ -397,6 +397,7 @@ namespace crow
             }
 
             res.end();
+            is_writing = false;
             res.clear();
             buffers_.clear();
         }
@@ -454,6 +455,7 @@ namespace crow
                 }
 
                 res.end();
+                is_writing = false;
                 res.clear();
                 buffers_.clear();
             }

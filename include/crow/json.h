@@ -1239,7 +1239,7 @@ namespace crow
 #ifdef CROW_JSON_USE_MAP
               std::map<std::string, wvalue>;
 #else
-              std::unordered_map<std::string, wvalue>;
+              absl::flat_hash_map<std::string, wvalue>;
 #endif
 
             using list = std::vector<wvalue>;
