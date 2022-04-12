@@ -228,6 +228,7 @@ namespace crow
         MAX
     };
 
+    /// @cond SKIP
     struct routing_params
     {
         std::vector<int64_t> int_params;
@@ -279,6 +280,7 @@ namespace crow
     {
         return string_params[index];
     }
+    /// @endcond
 } // namespace crow
 
 // clang-format off

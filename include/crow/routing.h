@@ -274,6 +274,7 @@ namespace crow
     class CatchallRule
     {
     public:
+        /// @cond SKIP
         CatchallRule() {}
 
         template<typename Func>
@@ -351,7 +352,7 @@ namespace crow
 
             handler_ = std::move(f);
         }
-
+        /// @endcond
         bool has_handler()
         {
             return (handler_ != nullptr);
