@@ -88,7 +88,7 @@ namespace crow
               close_handler_(std::move(close_handler)),
               error_handler_(std::move(error_handler)),
               accept_handler_(std::move(accept_handler)),
-			  signals_(adaptor_.get_io_service()
+			  signals_(adaptor_.get_io_service())
             {
                 if (!boost::iequals(req.get_header_value("upgrade"), "websocket"))
                 {
