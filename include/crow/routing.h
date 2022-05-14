@@ -1467,7 +1467,6 @@ namespace crow
                     allow = allow.substr(0, allow.size() - 2);
                     res = response(204);
                     res.set_header("Allow", allow);
-                    res.manual_length_header = true;
                     res.end();
                     return;
                 }
@@ -1485,7 +1484,6 @@ namespace crow
                         allow = allow.substr(0, allow.size() - 2);
                         res = response(204);
                         res.set_header("Allow", allow);
-                        res.manual_length_header = true;
                         res.end();
                         return;
                     }
