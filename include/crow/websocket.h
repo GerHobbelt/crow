@@ -64,7 +64,7 @@ namespace crow
         //
 
         /// A websocket connection.
-        template<typename Adaptor>
+        template<typename Adaptor, typename Handler>
         class Connection : public connection
         {
         public:
@@ -74,14 +74,21 @@ namespace crow
             /// Requires a request with an "Upgrade: websocket" header.<br>
             /// Automatically handles the handshake.
             ///
-            Connection(const crow::request& req, Adaptor&& adaptor, std::atomic<int>& websocket_count,
+            Connection(const crow::request& req, Adaptor&& adaptor, Handler* handler, std::atomic<int>& websocket_count,
                        std::function<void(crow::websocket::connection&)> open_handler,
                        std::function<void(crow::websocket::connection&, const std::string&, bool)> message_handler,
                        std::function<void(crow::websocket::connection&, const std::string&)> close_handler,
                        std::function<void(crow::websocket::connection&)> error_handler,
                        std::function<bool(const crow::request&)> accept_handler):
               adaptor_(std::move(adaptor)),
-			  websocket_count_(websocket_count), open_handler_(std::move(open_handler)), message_handler_(std::move(message_handler)), close_handler_(std::move(close_handler)), error_handler_(std::move(error_handler)), accept_handler_(std::move(accept_handler)), signals_(adaptor_.get_io_service(), SIGINT, SIGTERM)
+              handler_(handler),
+			  websocket_count_(websocket_count), 
+              open_handler_(std::move(open_handler)),
+              message_handler_(std::move(message_handler)),
+              close_handler_(std::move(close_handler)),
+              error_handler_(std::move(error_handler)),
+              accept_handler_(std::move(accept_handler)),
+			  signals_(adaptor_.get_io_service()
             {
                 if (!boost::iequals(req.get_header_value("upgrade"), "websocket"))
                 {
@@ -631,6 +638,7 @@ namespace crow
 
         private:
             Adaptor adaptor_;
+            Handler* handler_;
 
             std::vector<std::string> sending_buffers_;
             std::vector<std::string> write_buffers_;
