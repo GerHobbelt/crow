@@ -74,7 +74,7 @@ namespace crow
             /// Requires a request with an "Upgrade: websocket" header.<br>
             /// Automatically handles the handshake.
             ///
-            Connection(const crow::request& req, Adaptor&& adaptor, Handler* handler, std::atomic<int>& websocket_count,
+            Connection(const crow::request& req, Adaptor&& adaptor, Handler* handler,
                        std::function<void(crow::websocket::connection&)> open_handler,
                        std::function<void(crow::websocket::connection&, const std::string&, bool)> message_handler,
                        std::function<void(crow::websocket::connection&, const std::string&)> close_handler,
@@ -82,7 +82,7 @@ namespace crow
                        std::function<bool(const crow::request&)> accept_handler):
               adaptor_(std::move(adaptor)),
               handler_(handler),
-			  websocket_count_(websocket_count), 
+              websocket_count_(handler_->websocket_count),
               open_handler_(std::move(open_handler)),
               message_handler_(std::move(message_handler)),
               close_handler_(std::move(close_handler)),
@@ -108,6 +108,10 @@ namespace crow
                 }
                 websocket_count_++;
 
+                signals_.clear();
+                for (auto snum: handler_->signals())
+                    signals_.add(snum);
+
                 // Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
                 // Sec-WebSocket-Version: 13
                 std::string magic = req.get_header_value("Sec-WebSocket-Key") + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
@@ -115,6 +119,7 @@ namespace crow
                 s.processBytes(magic.data(), magic.size());
                 uint8_t digest[20];
                 s.getDigestBytes(digest);
+
                 signals_.async_wait(
                     [&](const boost::system::error_code& e, int /*signal_number*/){
                         if (!e){
