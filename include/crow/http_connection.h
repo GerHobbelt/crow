@@ -164,7 +164,7 @@ namespace crow
                 req.io_service = &adaptor_.get_io_service();
 
                 detail::middleware_call_helper<detail::middleware_call_criteria_only_global,
-                                               0, decltype(ctx_), decltype(*middlewares_)>(*middlewares_, req, res, ctx_);
+                                               0, decltype(ctx_), decltype(*middlewares_)>({}, *middlewares_, req, res, ctx_);
 
                 if (!res.completed_)
                 {
@@ -201,7 +201,7 @@ namespace crow
                   detail::middleware_call_criteria_only_global,
                   (static_cast<int>(sizeof...(Middlewares)) - 1),
                   decltype(ctx_),
-                  decltype(*middlewares_)>(*middlewares_, ctx_, req_, res);
+                  decltype(*middlewares_)>({}, *middlewares_, ctx_, req_, res);
             }
 #ifdef CROW_ENABLE_COMPRESSION
             if (handler_->compression_used())
@@ -321,11 +321,15 @@ namespace crow
             buffers_.reserve(4 * (res.headers.size() + 5) + 3);
 
             if (!statusCodes.count(res.code))
-                res.code = 500;
             {
-                auto& status = statusCodes.find(res.code)->second;
-                buffers_.emplace_back(status.data(), status.size());
+                CROW_LOG_WARNING << this << " status code "
+                                 << "(" << res.code << ")"
+                                 << " not defined, returning 500 instead";
+                res.code = 500;
             }
+
+            auto& status = statusCodes.find(res.code)->second;
+            buffers_.emplace_back(status.data(), status.size());
 
             if (res.code >= 400 && res.body.empty())
                 res.body = statusCodes[res.code].substr(9);

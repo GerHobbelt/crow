@@ -20,6 +20,7 @@
 #include "crow/http_request.h"
 #include "crow/http_server.h"
 #include "crow/task_timer.h"
+#include "crow/websocket.h"
 #ifdef CROW_ENABLE_COMPRESSION
 #include "crow/compression.h"
 #endif
@@ -59,8 +60,11 @@ namespace crow
         Crow()
         {}
 
-
-        std::atomic<int> websocket_count{0};
+        /// Construct Crow with a subset of middleware
+        template<typename... Ts>
+        Crow(Ts&&... ts):
+          middlewares_(make_middleware_tuple(std::forward<Ts>(ts)...))
+        {}
 
         /// Process an Upgrade request
         ///
@@ -74,7 +78,7 @@ namespace crow
         /// Process the request and generate a response for it
         void handle(request& req, response& res)
         {
-            router_.handle(req, res);
+            router_.handle<self_t>(req, res);
         }
 
         /// Create a dynamic route using a rule (**Use CROW_ROUTE instead**)
@@ -111,6 +115,19 @@ namespace crow
         CatchallRule& catchall_route()
         {
             return router_.catchall_rule();
+        }
+
+        /// Set the default max payload size for websockets
+        self_t& websocket_max_payload(uint64_t max_payload)
+        {
+            max_payload_ = max_payload;
+            return *this;
+        }
+
+        /// Get the default max payload size for websockets
+        uint64_t websocket_max_payload()
+        {
+            return max_payload_;
         }
 
         self_t& signal_clear()
@@ -341,8 +358,24 @@ namespace crow
             else
 #endif
             {
+                std::vector<crow::websocket::connection*> websockets_to_close = websockets_;
+                for (auto websocket : websockets_to_close)
+                {
+                    CROW_LOG_INFO << "Quitting Websocket: " << websocket;
+                    websocket->close("Server Application Terminated");
+                }
                 if (server_) { server_->stop(); }
             }
+        }
+
+        void add_websocket(crow::websocket::connection* conn)
+        {
+            websockets_.push_back(conn);
+        }
+
+        void remove_websocket(crow::websocket::connection* conn)
+        {
+            std::remove(websockets_.begin(), websockets_.end(), conn);
         }
 
         /// Print the routing paths defined for each HTTP method
@@ -471,9 +504,21 @@ namespace crow
         }
 
     private:
+        template<typename... Ts>
+        std::tuple<Middlewares...> make_middleware_tuple(Ts&&... ts)
+        {
+            auto fwd = std::forward_as_tuple((ts)...);
+            return std::make_tuple(
+              std::forward<Middlewares>(
+                black_magic::tuple_extract<Middlewares, decltype(fwd)>(fwd))...);
+        }
+
+
+    private:
         std::uint8_t timeout_{5};
         uint16_t port_ = 80;
         uint16_t concurrency_ = 2;
+        uint64_t max_payload_{UINT64_MAX};
         bool validated_ = false;
         std::string server_name_ = std::string("Crow/") + VERSION;
         std::string bindaddr_ = "0.0.0.0";
@@ -503,6 +548,7 @@ namespace crow
         bool server_started_{false};
         std::condition_variable cv_started_;
         std::mutex start_mutex_;
+        std::vector<crow::websocket::connection*> websockets_;
     };
     template<typename... Middlewares>
     using App = Crow<Middlewares...>;
