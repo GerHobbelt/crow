@@ -79,7 +79,7 @@ namespace crow
                        std::function<void(crow::websocket::connection&, const std::string&, bool)> message_handler,
                        std::function<void(crow::websocket::connection&, const std::string&)> close_handler,
                        std::function<void(crow::websocket::connection&)> error_handler,
-                       std::function<bool(const crow::request&)> accept_handler):
+                       std::function<bool(const crow::request&, void**)> accept_handler):
               adaptor_(std::move(adaptor)),
               handler_(handler),
               max_payload_bytes_(max_payload),
@@ -99,13 +99,15 @@ namespace crow
 
                 if (accept_handler_)
                 {
-                    if (!accept_handler_(req))
+                    void* ud = nullptr;
+                    if (!accept_handler_(req, &ud))
                     {
                         adaptor.close();
                         handler_->remove_websocket(this);
                         delete this;
                         return;
                     }
+                    userdata(ud);
                 }
 
                 // Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
@@ -681,7 +683,7 @@ namespace crow
             std::function<void(crow::websocket::connection&, const std::string&, bool)> message_handler_;
             std::function<void(crow::websocket::connection&, const std::string&)> close_handler_;
             std::function<void(crow::websocket::connection&)> error_handler_;
-            std::function<bool(const crow::request&)> accept_handler_;
+            std::function<bool(const crow::request&, void**)> accept_handler_;
         };
     } // namespace websocket
 } // namespace crow
