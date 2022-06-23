@@ -16,11 +16,7 @@
 
 #include "crow/settings.h"
 
-#include "crow/common.h"
-namespace crow
-{
 extern "C" {
-
 #include <stddef.h>
 #if defined(_WIN32) && !defined(__MINGW32__) && \
   (!defined(_MSC_VER) || _MSC_VER<1600) && !defined(__WINE__)
@@ -38,9 +34,15 @@ typedef unsigned __int64 uint64_t;
 #else
 #include <stdint.h>
 #endif
+#include <assert.h>
+#include <ctype.h>
+#include <string.h>
+#include <limits.h>
+}
 
-
-
+#include "crow/common.h"
+namespace crow
+{
 /* Maximium header size allowed. If the macro is not defined
  * before including this header then the default is used. To
  * change the maximum header size, define the macro in the build
@@ -191,12 +193,6 @@ enum http_errno {
 
 
 // SOURCE (.c) CODE
-#include <assert.h>
-#include <stddef.h>
-#include <ctype.h>
-#include <string.h>
-#include <limits.h>
-
 static uint32_t max_header_size = CROW_HTTP_MAX_HEADER_SIZE;
 
 #ifndef CROW_ULLONG_MAX
@@ -2014,7 +2010,6 @@ http_parser_set_max_header_size(uint32_t size) {
 #undef CROW_STRICT_CHECK
 #undef CROW_NEW_MESSAGE
 
-}
 }
 
 // clang-format on

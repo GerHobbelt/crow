@@ -2,10 +2,10 @@
 
 #include "crow/settings.h"
 
-#include <boost/asio.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/array.hpp>
+#ifndef ASIO_STANDALONE
+#define ASIO_STANDALONE
+#endif
+#include <asio.hpp>
 #include <atomic>
 #include <chrono>
 #include <vector>
@@ -21,10 +21,10 @@
 #include "crow/middleware.h"
 #include "crow/socket_adaptors.h"
 #include "crow/compression.h"
+#include "crow/utility.h"
 
 namespace crow
 {
-    using namespace boost;
     using tcp = asio::ip::tcp;
 
 
@@ -40,7 +40,7 @@ namespace crow
 
     public:
         Connection(
-          boost::asio::io_service& io_service,
+          asio::io_service& io_service,
           Handler* handler,
           const std::string& server_name,
           std::tuple<Middlewares...>* middlewares,
@@ -82,7 +82,7 @@ namespace crow
 
         void start()
         {
-            adaptor_.start([this](const boost::system::error_code& ec) {
+            adaptor_.start([this](const asio::error_code& ec) {
                 if (!ec)
                 {
                     start_deadline();
@@ -147,7 +147,7 @@ namespace crow
                 }
             }
 
-            CROW_LOG_INFO << "Request: " << boost::lexical_cast<std::string>(adaptor_.remote_endpoint()) << " " << this << " HTTP/" << (char)(req.http_ver_major + '0') << "." << (char)(req.http_ver_minor + '0') << ' ' << method_name(req.method) << " " << req.url;
+            CROW_LOG_INFO << "Request: " << utility::lexical_cast<std::string>(adaptor_.remote_endpoint()) << " " << this << " HTTP/" << (char)(req.http_ver_major + '0') << "." << (char)(req.http_ver_minor + '0') << ' ' << method_name(req.method) << " " << req.url;
 
 
             need_to_call_after_handlers_ = false;
@@ -378,7 +378,7 @@ namespace crow
         void do_write_static()
         {
             is_writing = true;
-            boost::asio::write(adaptor_.socket(), buffers_);
+            asio::write(adaptor_.socket(), buffers_);
 
             if (res.file_info.statResult == 0)
             {
@@ -387,7 +387,7 @@ namespace crow
                 while (is.read(buf, sizeof(buf)).gcount() > 0)
                 {
                     std::vector<asio::const_buffer> buffers;
-                    buffers.push_back(boost::asio::buffer(buf));
+                    buffers.push_back(asio::buffer(buf));
                     do_write_sync(buffers);
                 }
             }
@@ -425,7 +425,7 @@ namespace crow
             else
             {
                 is_writing = true;
-                boost::asio::write(adaptor_.socket(), buffers_); // Write the response start / headers
+                asio::write(adaptor_.socket(), buffers_); // Write the response start / headers
                 cancel_deadline_timer();
                 if (res.body.length() > 0)
                 {
@@ -438,7 +438,7 @@ namespace crow
                         buf = res.body.substr(0, 16384);
                         res.body = res.body.substr(16384);
                         buffers.clear();
-                        buffers.push_back(boost::asio::buffer(buf));
+                        buffers.push_back(asio::buffer(buf));
                         do_write_sync(buffers);
                     }
                     // Collect whatever is left (less than 16KB) and send it down the socket
@@ -447,7 +447,7 @@ namespace crow
                     res.body.clear();
 
                     buffers.clear();
-                    buffers.push_back(boost::asio::buffer(buf));
+                    buffers.push_back(asio::buffer(buf));
                     do_write_sync(buffers);
                 }
                 is_writing = false;
@@ -471,8 +471,8 @@ namespace crow
             //auto self = this->shared_from_this();
             is_reading = true;
             adaptor_.socket().async_read_some(
-              boost::asio::buffer(buffer_),
-              [this](const boost::system::error_code& ec, std::size_t bytes_transferred) {
+              asio::buffer(buffer_),
+              [this](const asio::error_code& ec, std::size_t bytes_transferred) {
                   bool error_while_reading = true;
                   if (!ec)
                   {
@@ -518,9 +518,9 @@ namespace crow
         {
             //auto self = this->shared_from_this();
             is_writing = true;
-            boost::asio::async_write(
+            asio::async_write(
               adaptor_.socket(), buffers_,
-              [&](const boost::system::error_code& ec, std::size_t /*bytes_transferred*/) {
+              [&](const asio::error_code& ec, std::size_t /*bytes_transferred*/) {
                   is_writing = false;
                   res.clear();
                   res_body_copy_.clear();
@@ -545,7 +545,7 @@ namespace crow
         inline void do_write_sync(std::vector<asio::const_buffer>& buffers)
         {
 
-            boost::asio::write(adaptor_.socket(), buffers, [&](std::error_code ec, std::size_t) {
+            asio::write(adaptor_.socket(), buffers, [&](asio::error_code ec, std::size_t) {
                 if (!ec)
                 {
                     return false;
@@ -596,7 +596,7 @@ namespace crow
         Adaptor adaptor_;
         Handler* handler_;
 
-        boost::array<char, 4096> buffer_;
+        std::array<char, 4096> buffer_;
 
         HTTPParser<Connection> parser_;
         request req_;
@@ -605,7 +605,7 @@ namespace crow
         bool close_connection_ = false;
 
         const std::string& server_name_;
-        std::vector<boost::asio::const_buffer> buffers_;
+        std::vector<asio::const_buffer> buffers_;
 
         std::string content_length_;
         std::string date_str_;

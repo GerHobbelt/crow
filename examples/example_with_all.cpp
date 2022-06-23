@@ -1,8 +1,6 @@
 #include "crow_all.h"
 #include "crow/monolithic_examples.h"
 
-#include <sstream>
-
 
 class ExampleLogHandler : public crow::ILogHandler
 {
@@ -108,7 +106,7 @@ int main(void)
         os << "The key 'foo' was " << (req.url_params.get("foo") == nullptr ? "not " : "") << "found.\n";
         if (req.url_params.get("pew") != nullptr)
         {
-            double countD = boost::lexical_cast<double>(req.url_params.get("pew"));
+            double countD = crow::utility::lexical_cast<double>(req.url_params.get("pew"));
             os << "The value of 'pew' is " << countD << '\n';
         }
         auto count = req.url_params.get_list("count");

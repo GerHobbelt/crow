@@ -2,7 +2,10 @@
 
 #include "crow/settings.h"
 
-#include <boost/asio.hpp>
+#ifndef ASIO_STANDALONE
+#define ASIO_STANDALONE
+#endif
+#include <asio.hpp>
 
 #include "crow/common.h"
 #include "crow/ci_map.h"
@@ -37,7 +40,7 @@ namespace crow
 
         void* middleware_context{};
         void* middleware_container{};
-        boost::asio::io_service* io_service{};
+        asio::io_service* io_service{};
 
         /// Construct an empty request. (sets the method to `GET`)
         request():
