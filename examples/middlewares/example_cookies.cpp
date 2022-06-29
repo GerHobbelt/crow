@@ -1,7 +1,13 @@
 #include "crow.h"
 #include "crow/middlewares/cookie_parser.h"
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main	crow_example_middleware_cookies_main
+#endif
+
+int main(void)
 {
     // Include CookieParser middleware
     crow::App<crow::CookieParser> app;

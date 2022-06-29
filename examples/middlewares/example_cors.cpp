@@ -1,7 +1,13 @@
 #include "crow.h"
 #include "crow/middlewares/cors.h"
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main	crow_example_middleware_cors_main
+#endif
+
+int main(void)
 {
     // Enable CORS
     crow::App<crow::CORSHandler> app;
