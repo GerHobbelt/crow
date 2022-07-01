@@ -208,3 +208,7 @@ Crow has incorporated the following libraries into its source.
     FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
     ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
+
+## Dependencies
+
+Crow uses the stand-alone `asio` library: https://github.com/chriskohlhoff/asio = https://think-async.com/Asio/

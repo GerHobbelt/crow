@@ -11,7 +11,8 @@
 #endif
 #include "crow/settings.h"
 #include <asio/version.hpp>
-#if ASIO_VERSION >= 101300 // 1.13.0
+
+#if (defined(ASIO_VERSION) && (ASIO_VERSION >= 101300)) // 1.13.0
 #define GET_IO_SERVICE(s) ((asio::io_context&)(s).get_executor().context())
 #else
 #define GET_IO_SERVICE(s) ((s).get_io_service())
