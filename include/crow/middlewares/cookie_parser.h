@@ -53,6 +53,9 @@ namespace crow
                 value_ = std::forward<U>(value);
             }
 
+            Cookie(const std::string& key):
+              Cookie(key, "") {}
+
             // format cookie to HTTP header format
             std::string dump() const
             {
@@ -91,6 +94,18 @@ namespace crow
                     }
                 }
                 return ss.str();
+            }
+
+            const std::string& name()
+            {
+                return key_;
+            }
+
+            template<typename U>
+            Cookie& value(U&& value)
+            {
+                value_ = std::forward<U>(value);
+                return *this;
             }
 
             // Expires attribute
@@ -190,7 +205,6 @@ namespace crow
         struct context
         {
             std::unordered_map<std::string, std::string> jar;
-            std::vector<Cookie> cookies_to_add;
 
             std::string get_cookie(const std::string& key) const
             {
@@ -206,6 +220,16 @@ namespace crow
                 cookies_to_add.emplace_back(key, std::forward<U>(value));
                 return cookies_to_add.back();
             }
+
+            Cookie& set_cookie(Cookie cookie)
+            {
+                cookies_to_add.push_back(std::move(cookie));
+                return cookies_to_add.back();
+            }
+
+        private:
+            friend class CookieParser;
+            std::vector<Cookie> cookies_to_add;
         };
 
         void before_handle(request& req, response& res, context& ctx)
