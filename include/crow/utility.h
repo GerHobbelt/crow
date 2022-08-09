@@ -15,7 +15,7 @@
 #include <random>
 
 
-#ifdef CROW_CAN_USE_CPP17
+#if defined(CROW_CAN_USE_CPP17) && !defined(CROW_FILESYSTEM_IS_EXPERIMENTAL)
 #include <filesystem>
 #endif
 
@@ -802,8 +802,8 @@ namespace crow
 
         inline static std::string join_path(std::string path, const std::string& fname)
         {
-#ifdef CROW_CAN_USE_CPP17
-            return std::filesystem::path(path) / fname;
+#if defined(CROW_CAN_USE_CPP17) && !defined(CROW_FILESYSTEM_IS_EXPERIMENTAL)
+            return (std::filesystem::path(path) / fname).string();
 #else
             if (!(path.back() == '/' || path.back() == '\\'))
                 path += '/';
