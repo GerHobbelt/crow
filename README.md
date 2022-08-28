@@ -106,7 +106,7 @@ More examples can be found [here](https://github.com/crowcpp/crow/tree/master/ex
 Available [here](https://crowcpp.org/master/getting_started/setup).
 
 ## Disclaimer
-CrowCpp/Crow is a project based on [ipkn/crow](https://github.com/ipkn/crow). Neither CrowCpp, it's members, or this project have been associated with, or endorsed or supported by ipkn (Jaeseung Ha) in any way. We do use ipkn/crow's source code under the BSD-3 clause license and sometimes refer to the public comments available on the github repository. But we do not in any way claim to be associated with or in contact with ipkn (Jaeseung Ha) regarding CrowCpp or CrowCpp/Crow
+CrowCpp/Crow is a project based on [ipkn/crow](https://github.com/ipkn/crow). Neither [CrowCpp](https://github.com/CrowCpp/Crow), it's members, or this project have been associated with, or endorsed or supported by ipkn (Jaeseung Ha) in any way. We do use ipkn/crow's source code under the BSD-3 clause license and sometimes refer to the public comments available on the github repository. But we do not in any way claim to be associated with or in contact with ipkn (Jaeseung Ha) regarding CrowCpp or [CrowCpp/Crow](https://github.com/CrowCpp/Crow)
 
 ## Attributions
 Crow has incorporated the following libraries into its source.
