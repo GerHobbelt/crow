@@ -22,6 +22,7 @@ extern int crow_mustache_main(void);
 extern int crow_example_blueprint_main(void);
 extern int crow_example_middleware_main(void);
 extern int crow_test_multi_file_main(void);
+extern int crow_test_external_definition_main(void);
 
 #ifdef __cplusplus
 }

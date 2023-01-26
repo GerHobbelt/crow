@@ -1,5 +1,7 @@
 // Testing whether crow routes can be defined in an external function.
 #include "crow.h"
+#include "crow/monolithic_examples.h"
+
 
 void define_endpoints(crow::SimpleApp& app)
 {
@@ -15,11 +17,17 @@ void define_endpoints(crow::SimpleApp& app)
       .onclose([](crow::websocket::connection&, const std::string&) {});
 }
 
-int main()
+
+#if defined(BUILD_MONOLITHIC)
+#define main	crow_test_external_definition_main
+#endif
+
+int main(void)
 {
     crow::SimpleApp app;
 
     define_endpoints(app);
 
     app.port(18080).run();
+	return 0;
 }
