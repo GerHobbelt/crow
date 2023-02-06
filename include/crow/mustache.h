@@ -236,6 +236,8 @@ namespace crow
                             auto& ctx = optional_ctx.second;
                             switch (ctx.t())
                             {
+                                case json::type::False:
+                                case json::type::True:
                                 case json::type::Number:
                                     out += ctx.dump();
                                     break;
