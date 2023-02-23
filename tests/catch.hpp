@@ -10055,10 +10055,10 @@ namespace Catch {
 #  define CATCH_DEFINED_NOMINMAX
 #  define NOMINMAX
 #endif
-#if !defined(WIN32_LEAN_AND_MEAN) && !defined(CATCH_CONFIG_NO_WIN32_LEAN_AND_MEAN)
-#  define CATCH_DEFINED_WIN32_LEAN_AND_MEAN
-#  define WIN32_LEAN_AND_MEAN
-#endif
+//#if !defined(WIN32_LEAN_AND_MEAN) && !defined(CATCH_CONFIG_NO_WIN32_LEAN_AND_MEAN)
+//#  define CATCH_DEFINED_WIN32_LEAN_AND_MEAN
+//#  define WIN32_LEAN_AND_MEAN
+//#endif
 
 #ifdef __AFXDLL
 #include <AfxWin.h>
