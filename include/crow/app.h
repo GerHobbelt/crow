@@ -174,7 +174,6 @@ namespace crow
             return port_;
         }
 
-
         /// Set the connection timeout in seconds (default is 5)
         self_t& timeout(std::uint8_t timeout)
         {
@@ -195,6 +194,12 @@ namespace crow
             bindaddr_ = bindaddr;
             return *this;
         }
+        
+        /// Get the address that Crow will handle requests on
+        std::string bindaddr()
+        {
+            return bindaddr_;
+        }
 
         /// Run the server on multiple threads using all available threads
         self_t& multithreaded()
@@ -209,6 +214,12 @@ namespace crow
                 concurrency = 2;
             concurrency_ = concurrency;
             return *this;
+        }
+        
+        /// Get the number of threads that server is using
+        std::uint16_t concurrency()
+        {
+            return concurrency_;
         }
 
         /// Set the server's log level
