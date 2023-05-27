@@ -94,3 +94,49 @@
 #error "GCC 8.1 - 8.3 has a bug that prevents Crow from compiling with C++11. Please update GCC to > 8.3 or use C++ > 11."
 #endif
 #endif
+
+// ILP64 vs LLP64 vs LP64 vs LP32; https://github.com/cpredef/predef/blob/master/DataModels.md
+//
+// why sizeof(int) checks won't work:
+// https://stackoverflow.com/questions/4079243/how-can-i-use-sizeof-in-a-preprocessor-macro
+// https://stackoverflow.com/questions/5272825/detecting-64bit-compile-in-c
+#include <cstdint>
+#include <limits.h>
+
+#if (INTPTR_MAX == INT64_MAX) || defined(__LP64__) || defined (__x86_64__)
+// 64-bit
+
+#if INT_MAX == LONG_MAX
+// LLP64
+#if defined(__LP64__)
+#error "Unexpected ILP64 mode"
+#endif
+#if INT_MAX == LLONG_MAX
+#define __ILP64__ 1
+#else
+#define __LLP64__ 1
+#endif
+#else
+// LP64
+#if !defined(__LP64__)
+#define __LP64__ 1
+#endif
+#endif
+
+#elif (INTPTR_MAX == INT32_MAX) || defined(__ILP32__)
+// 32-bit
+
+#if (INTPTR_MAX == INT_MAX)
+#if !defined(__ILP32__)
+#define __ILP32__		1
+#endif
+#else
+#if defined(__ILP32__)
+#error "Unexpected ILP32 mode"
+#endif
+#define __LP32__		1
+#endif
+
+#else
+#error "LP32/ILP64/LLP64: Unknown pointer size or missing size macros!"
+#endif
