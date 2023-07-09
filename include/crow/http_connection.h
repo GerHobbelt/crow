@@ -277,8 +277,7 @@ namespace crow
 
             if (!adaptor_.is_open())
             {
-                //CROW_LOG_DEBUG << this << " delete (socket is closed) " << is_reading << ' ' << is_writing;
-                //delete this;
+                //CROW_LOG_DEBUG << this << " delete (socket is closed) ";
                 return;
             }
             // TODO(EDev): HTTP version in status codes should be dynamic
@@ -413,7 +412,6 @@ namespace crow
             }
 
             res.end();
-            is_writing = false;
             res.clear();
             buffers_.clear();
             parser_.clear();
@@ -470,7 +468,6 @@ namespace crow
                 }
 
                 res.end();
-                is_writing = false;
                 res.clear();
                 buffers_.clear();
                 parser_.clear();
