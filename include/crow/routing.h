@@ -658,6 +658,9 @@ namespace crow
 
         void validate() override
         {
+            if (rule_.at(0) != '/')
+                throw std::runtime_error("Internal error: Routes must start with a '/'");
+
             if (!handler_)
             {
                 throw std::runtime_error(name_ + (!name_.empty() ? ": " : "") + "no handler for url " + rule_);
@@ -1723,7 +1726,7 @@ namespace crow
                     return;
                 }
 
-                res.complete_request_handler_ = [&rule, &ctx, &container, &req, &res, &glob_completion_handler] {
+                res.complete_request_handler_ = [&rule, &ctx, &container, &req, &res, glob_completion_handler] {
                     detail::middleware_call_criteria_dynamic<true> crit_bwd(rule->mw_indices_.indices());
 
                     detail::after_handlers_call_helper<
