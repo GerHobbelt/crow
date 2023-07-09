@@ -6,6 +6,7 @@
 #include "crow/logging.h"
 #include "crow/socket_adaptors.h"
 #include "crow/http_request.h"
+#include "crow/task_timer.h"
 #include "crow/TinySHA1.hpp"
 #include "crow/utility.h"
 
