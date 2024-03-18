@@ -131,6 +131,12 @@ namespace crow
             bool is_invalid_request = false;
             add_keep_alive_ = false;
 
+            // Create context
+            ctx_ = detail::context<Middlewares...>();
+            req_.middleware_context = static_cast<void*>(&ctx_);
+            req_.middleware_container = static_cast<void*>(middlewares_);
+            req_.io_service = &adaptor_.get_io_service();
+            
             req_.remote_ip_address = adaptor_.remote_endpoint().address().to_string();
 
             add_keep_alive_ = req_.keep_alive;
@@ -153,6 +159,9 @@ namespace crow
                     }
                     else
                     {
+                
+                        detail::middleware_call_helper<detail::middleware_call_criteria_only_global,
+                                                       0, decltype(ctx_), decltype(*middlewares_)>({}, *middlewares_, req_, res, ctx_);
                         close_connection_ = true;
                         handler_->handle_upgrade(req_, res, std::move(adaptor_));
                         return;
@@ -171,12 +180,7 @@ namespace crow
                 res.is_alive_helper_ = [self]() -> bool {
                     return self->adaptor_.is_open();
                 };
-
-                ctx_ = detail::context<Middlewares...>();
-                req_.middleware_context = static_cast<void*>(&ctx_);
-                req_.middleware_container = static_cast<void*>(middlewares_);
-                req_.io_service = &adaptor_.get_io_service();
-
+                
                 detail::middleware_call_helper<detail::middleware_call_criteria_only_global,
                                                0, decltype(ctx_), decltype(*middlewares_)>({}, *middlewares_, req_, res, ctx_);
 
