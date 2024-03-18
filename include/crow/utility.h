@@ -13,6 +13,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <random>
+#include <algorithm>
 
 
 #if defined(CROW_CAN_USE_CPP17) && !defined(CROW_FILESYSTEM_IS_EXPERIMENTAL)
@@ -703,6 +704,14 @@ namespace crow
             return base64decode(data.data(), data.length());
         }
 
+        inline static std::string normalize_path(const std::string& directoryPath)
+        {
+            std::string normalizedPath = directoryPath;
+            std::replace(normalizedPath.begin(), normalizedPath.end(), '\\', '/');
+            if (!normalizedPath.empty() && normalizedPath.back() != '/')
+                normalizedPath += '/';
+            return normalizedPath;
+        }
 
         inline static void sanitize_filename(std::string& data, char replacement = '_')
         {
