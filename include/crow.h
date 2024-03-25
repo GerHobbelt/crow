@@ -4,7 +4,6 @@
 #include "crow/http_parser_merged.h"
 #include "crow/ci_map.h"
 #include "crow/TinySHA1.hpp"
-#include "crow/settings.h"
 #include "crow/socket_adaptors.h"
 #include "crow/json.h"
 #include "crow/mustache.h"
