@@ -16,11 +16,13 @@
 
 #include "crow/settings.h"
 
-extern "C" {
 #include <stddef.h>
 #if defined(_WIN32) && !defined(__MINGW32__) && \
   (!defined(_MSC_VER) || _MSC_VER<1600) && !defined(__WINE__)
 #include <BaseTsd.h>
+#if defined __cplusplus
+extern "C" {
+#endif
 typedef __int8 int8_t;
 typedef unsigned __int8 uint8_t;
 typedef __int16 int16_t;
@@ -29,6 +31,9 @@ typedef __int32 int32_t;
 typedef unsigned __int32 uint32_t;
 typedef __int64 int64_t;
 typedef unsigned __int64 uint64_t;
+#if defined __cplusplus
+}
+#endif
 #elif (defined(__sun) || defined(__sun__)) && defined(__SunOS_5_9)
 #include <sys/inttypes.h>
 #else
@@ -38,7 +43,6 @@ typedef unsigned __int64 uint64_t;
 #include <ctype.h>
 #include <string.h>
 #include <limits.h>
-}
 
 #include "crow/common.h"
 namespace crow
@@ -1773,7 +1777,7 @@ reexecute:
       case s_chunk_size_start:
       {
         assert(nread == 1);
-        assert(parser->flags & F_CHUNKED);
+        assert((parser->flags & F_CHUNKED) == 0);
 
         unhex_val = unhex[static_cast<unsigned char>(ch)];
         if (CROW_UNLIKELY(unhex_val == -1)) {
@@ -1790,7 +1794,7 @@ reexecute:
       {
         uint64_t t;
 
-        assert(parser->flags & F_CHUNKED);
+        assert((parser->flags & F_CHUNKED) == 0);
 
         if (ch == cr) {
           parser->state = s_chunk_size_almost_done;
@@ -1825,7 +1829,7 @@ reexecute:
 
       case s_chunk_parameters:
       {
-        assert(parser->flags & F_CHUNKED);
+        assert((parser->flags & F_CHUNKED) == 0);
         /* just ignore this shit. TODO check for overflow */
         if (ch == cr) {
           parser->state = s_chunk_size_almost_done;
@@ -1836,7 +1840,7 @@ reexecute:
 
       case s_chunk_size_almost_done:
       {
-        assert(parser->flags & F_CHUNKED);
+        assert((parser->flags & F_CHUNKED) == 0);
         CROW_STRICT_CHECK(ch != lf);
 
         parser->nread = 0;
@@ -1856,7 +1860,7 @@ reexecute:
         uint64_t to_read = CROW_MIN(parser->content_length,
                                (uint64_t) ((data + len) - p));
 
-        assert(parser->flags & F_CHUNKED);
+        assert((parser->flags & F_CHUNKED) == 0);
         assert(parser->content_length != 0
             && parser->content_length != CROW_ULLONG_MAX);
 
@@ -1875,7 +1879,7 @@ reexecute:
       }
 
       case s_chunk_data_almost_done:
-        assert(parser->flags & F_CHUNKED);
+        assert((parser->flags & F_CHUNKED) == 0);
         assert(parser->content_length == 0);
         CROW_STRICT_CHECK(ch != cr);
         parser->state = s_chunk_data_done;
@@ -1883,7 +1887,7 @@ reexecute:
         break;
 
       case s_chunk_data_done:
-        assert(parser->flags & F_CHUNKED);
+        assert((parser->flags & F_CHUNKED) == 0);
         CROW_STRICT_CHECK(ch != lf);
         parser->nread = 0;
         nread = 0;
