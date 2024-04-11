@@ -116,7 +116,7 @@ namespace crow
             req_ = std::move(parser_.to_request());
             request& req = req_;
 
-            req.remote_ip_address = adaptor_.remote_endpoint().address().to_string();
+            req_.remote_ip_address = adaptor_.address();
 
             add_keep_alive_ = req.keep_alive;
             close_connection_ = req.close_connection;
