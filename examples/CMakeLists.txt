@@ -87,6 +87,10 @@ add_executable(example_cors middlewares/example_cors.cpp)
 add_warnings_optimizations(example_cors)
 target_link_libraries(example_cors PUBLIC Crow::Crow)
 
+add_executable(example_unix_socket example_unix_socket.cpp)
+add_warnings_optimizations(example_unix_socket)
+target_link_libraries(example_unix_socket PUBLIC Crow::Crow)
+
 if(MSVC)
   add_executable(example_vs example_vs.cpp)
   add_warnings_optimizations(example_vs)
