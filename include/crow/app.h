@@ -156,16 +156,16 @@ namespace crow
             return bindaddr_;
         }
 
-        /// Disable tcp/ip and use unix domain socket instead
-        self_t& unix_path(std::string path)
+        /// \brief Disable tcp/ip and use unix domain socket instead
+        self_t& local_socket_path(std::string path)
         {
             bindaddr_ = path;
             use_unix_ = true;
             return *this;
         }
 
-        /// Get the unix domain socket path
-        std::string unix_path()
+        /// \brief Get the unix domain socket path
+        std::string local_socket_path()
         {
             return bindaddr_;
         }
