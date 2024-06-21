@@ -7,7 +7,7 @@
 #include <zlib-ng.h>
 
 // http://zlib.net/manual.html
-namespace crow
+namespace crow // NOTE: Already documented in "crow/app.h"
 {
     namespace compression
     {

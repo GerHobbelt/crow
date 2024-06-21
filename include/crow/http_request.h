@@ -15,7 +15,7 @@
 #include "crow/ci_map.h"
 #include "crow/query_string.h"
 
-namespace crow
+namespace crow // NOTE: Already documented in "crow/app.h"
 {
 #ifdef CROW_USE_BOOST
     namespace asio = boost::asio;
