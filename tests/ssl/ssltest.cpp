@@ -1,4 +1,3 @@
-#define CATCH_CONFIG_MAIN
 #define CROW_LOG_LEVEL 0
 
 // fix: asio\detail\socket_types.hpp(24, 1):  error C1189 : #error : WinSock.h has already been included

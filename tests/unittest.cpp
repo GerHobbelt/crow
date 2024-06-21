@@ -1,4 +1,3 @@
-#define CATCH_CONFIG_MAIN
 #define CROW_ENABLE_DEBUG
 #define CROW_LOG_LEVEL 0
 
