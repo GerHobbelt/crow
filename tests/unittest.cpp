@@ -28,6 +28,13 @@
 using namespace std;
 using namespace crow;
 
+#ifdef CROW_USE_BOOST
+namespace asio = boost::asio;
+using asio_error_code = boost::system::error_code;
+#else
+using asio_error_code = asio::error_code;
+#endif
+
 #define LOCALHOST_ADDRESS "127.0.0.1"
 
 TEST_CASE("Rule")
@@ -2950,7 +2957,7 @@ TEST_CASE("websocket_max_payload")
         }
     }
 
-    asio::error_code ec;
+    asio_error_code ec;
     c.lowest_layer().shutdown(asio::socket_base::shutdown_type::shutdown_both, ec);
 
     app.stop();
@@ -3535,7 +3542,7 @@ TEST_CASE("timeout")
               asio::ip::address::from_string(LOCALHOST_ADDRESS), 45451));
 
             auto receive_future = async(launch::async, [&]() {
-                asio::error_code ec;
+                asio_error_code ec;
                 c.receive(asio::buffer(buf, 2048), 0, ec);
                 return ec;
             });
@@ -3555,7 +3562,7 @@ TEST_CASE("timeout")
 
             size_t received;
             auto receive_future = async(launch::async, [&]() {
-                asio::error_code ec;
+                asio_error_code ec;
                 received = c.receive(asio::buffer(buf, 2048), 0, ec);
                 return ec;
             });
