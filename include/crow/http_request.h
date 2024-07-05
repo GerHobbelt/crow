@@ -8,6 +8,7 @@
 #endif
 #include <asio.hpp>
 #endif
+#include <fstream>
 
 #include "crow/common.h"
 #include "crow/ci_map.h"
@@ -40,6 +41,7 @@ namespace crow // NOTE: Already documented in "crow/app.h"
         query_string url_params; ///< The parameters associated with the request. (everything after the `?` in the URL)
         ci_map headers;
         std::string body;
+        std::ofstream file;
         std::string remote_ip_address; ///< The IP address from which the request was sent.
         unsigned char http_ver_major, http_ver_minor;
         bool keep_alive,    ///< Whether or not the server should send a `connection: Keep-Alive` header to the client.

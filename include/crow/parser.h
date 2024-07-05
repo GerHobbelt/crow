@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <algorithm>
+#include <filesystem>
 
 #include "crow/http_request.h"
 #include "crow/http_parser_merged.h"
@@ -83,12 +84,42 @@ namespace crow
             self->set_connection_parameters();
 
             self->process_header();
+
+            if (self->req.raw_url.ends_with("imports"))
+            {
+                const auto it = self->req.headers.find("X-Uploaded-Filename");
+                if (it == self->req.headers.cend() || it->second.empty())
+                {
+                    return -1;
+                }
+
+                auto ec = std::error_code{};
+                auto dir = std::filesystem::path{"/var/lib/flecs/imports/"};
+                std::filesystem::create_directories(dir, ec);
+                if (ec)
+                {
+                    return -1;
+                }
+
+                self->req.file = std::ofstream{dir / it->second, std::ios::trunc | std::ios::binary};
+                if (!self->req.file)
+                {
+                    return -1;
+                }
+            }
             return 0;
         }
         static int on_body(http_parser* self_, const char* at, size_t length)
         {
             HTTPParser* self = static_cast<HTTPParser*>(self_);
-            self->req.body.insert(self->req.body.end(), at, at + length);
+            if (self->req.file.is_open())
+            {
+                self->req.file.write(at, length);
+            }
+            else
+            {
+                self->req.body.insert(self->req.body.end(), at, at + length);
+            }
             return 0;
         }
         static int on_message_complete(http_parser* self_)
