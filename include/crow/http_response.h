@@ -269,7 +269,7 @@ namespace crow
         /// Check whether the response has a static file defined.
         bool is_static_type()
         {
-            return file_info.path.size();
+            return !!file_info.path.size();
         }
 
         /// This constains metadata (coming from the `stat` command) related to any static files associated with this response.
