@@ -14,7 +14,7 @@ void define_endpoints(crow::SimpleApp& app)
           return true;
       })
       .onopen([](crow::websocket::connection&) {})
-      .onclose([](crow::websocket::connection&, const std::string&) {});
+      .onclose([](crow::websocket::connection&, const std::string&, uint16_t) {});
 }
 
 

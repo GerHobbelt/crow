@@ -13,6 +13,7 @@ FZ_HEAPDBG_TRACKER_SECTION_START_MARKER(CROW_MIME_)
 namespace crow
 {
     const std::unordered_map<std::string, std::string> mime_types{
+      {"gz", "application/gzip"},
       {"shtml", "text/html"},
       {"htm", "text/html"},
       {"html", "text/html"},

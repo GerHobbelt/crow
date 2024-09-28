@@ -708,7 +708,7 @@ static const int8_t unhex[256] =
   const char *body_mark = 0;
   const unsigned int lenient = parser->lenient_http_headers;
   const unsigned int allow_chunked_length = parser->allow_chunked_length;
-  
+
   uint32_t nread = parser->nread;
 
   /* We're in an error state. Don't bother doing anything. */
@@ -1111,7 +1111,7 @@ reexecute:
       }
 
       case s_header_field:
-      {        
+      {
         const char* start = p;
         for (; p != data + len; p++) {
           ch = *p;
@@ -1119,7 +1119,7 @@ reexecute:
 
           if (!c)
             break;
-          
+
           switch (parser->header_state) {
             case h_general: {
               size_t left = data + len - p;
@@ -1299,7 +1299,7 @@ reexecute:
               parser->header_state = h_matching_transfer_encoding_token;
             }
             break;
-            
+
           /* Multi-value `Transfer-Encoding` header */
           case h_matching_transfer_encoding_token_start:
             break;
@@ -1309,7 +1309,7 @@ reexecute:
               CROW_SET_ERRNO(CHPE_INVALID_CONTENT_LENGTH);
               goto error;
             }
-            
+
             if (parser->flags & F_CONTENTLENGTH) {
               CROW_SET_ERRNO(CHPE_UNEXPECTED_CONTENT_LENGTH);
               goto error;
@@ -1366,12 +1366,12 @@ reexecute:
             CROW_CALLBACK_DATA_NOADVANCE(header_value);
             CROW_REEXECUTE();
           }
-          
+
           if (!lenient && !CROW_IS_HEADER_CHAR(ch)) {
             CROW_SET_ERRNO(CHPE_INVALID_HEADER_TOKEN);
             goto error;
           }
-          
+
           c = CROW_LOWER(ch);
 
           switch (h_state) {
@@ -1435,7 +1435,7 @@ reexecute:
               parser->content_length = t;
               break;
             }
-            
+
             case h_content_length_ws:
               if (ch == ' ') break;
               CROW_SET_ERRNO(CHPE_INVALID_CONTENT_LENGTH);
@@ -1513,11 +1513,11 @@ reexecute:
           }
         }
         parser->header_state = h_state;
-        
-        
+
+
         if (p == data + len)
           --p;
-        
+
         CROW_COUNT_HEADER_SIZE(p - start);
         break;
       }
@@ -1593,7 +1593,7 @@ reexecute:
           CROW_CALLBACK_NOTIFY(message_complete);
           break;
         }
-        
+
         /* Cannot use transfer-encoding and a content-length header together
            per the HTTP specification. (RFC 7230 Section 3.3.3) */
         if ((parser->uses_transfer_encoding == 1) &&
@@ -1611,7 +1611,7 @@ reexecute:
             goto error;
           }
         }
-        
+
         parser->state = s_headers_done;
 
         /* Set this here so that on_headers_complete() callbacks can see it */

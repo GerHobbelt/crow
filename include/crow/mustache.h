@@ -36,7 +36,7 @@ namespace crow // NOTE: Already documented in "crow/app.h"
      *
      * As name suggest, crow uses [mustache](https://en.wikipedia.org/wiki/Mustache_(template_system))
      * as main template rendering system.
-     * 
+     *
      * You may be interested in taking a look at the [Templating guide
      * page](https://crowcpp.org/master/guides/templating/).
      */
@@ -57,7 +57,7 @@ namespace crow // NOTE: Already documented in "crow/app.h"
             invalid_template_exception(const std::string& msg):
               msg("crow::mustache error: " + msg)
             {}
-            virtual const char* what() const throw()
+            virtual const char* what() const throw() override
             {
                 return msg.c_str();
             }
@@ -93,7 +93,7 @@ namespace crow // NOTE: Already documented in "crow/app.h"
          * \enum ActionType
          * \brief Used in \ref Action to represent different parsing
          * behaviors.
-         * 
+         *
          * \see \ref Action
          */
         enum class ActionType
@@ -111,7 +111,7 @@ namespace crow // NOTE: Already documented in "crow/app.h"
          * \struct Action
          * \brief Used during mustache template compilation to
          * represent parsing actions.
-         * 
+         *
          * \see \ref compile
          * \see \ref template_t
          */
