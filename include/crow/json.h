@@ -122,9 +122,9 @@ namespace crow // NOTE: Already documented in "crow/app.h"
             /// A read string implementation with comparison functionality.
             struct r_string
             {
-                r_string(){};
+                r_string(){}
                 r_string(char* s, char* e):
-                  s_(s), e_(e){};
+                  s_(s), e_(e){}
                 ~r_string()
                 {
                     if (owned_)
@@ -556,15 +556,15 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                     bool operator()(const rvalue& l, const rvalue& r) const
                     {
                         return l.key_ < r.key_;
-                    };
+                    }
                     bool operator()(const rvalue& l, const std::string& r) const
                     {
                         return l.key_ < r;
-                    };
+                    }
                     bool operator()(const std::string& l, const rvalue& r) const
                     {
                         return l < r.key_;
-                    };
+                    }
                 };
                 if (!is_cached())
                 {
@@ -651,15 +651,15 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                     bool operator()(const rvalue& l, const rvalue& r) const
                     {
                         return l.key_ < r.key_;
-                    };
+                    }
                     bool operator()(const rvalue& l, const std::string& r) const
                     {
                         return l.key_ < r;
-                    };
+                    }
                     bool operator()(const std::string& l, const rvalue& r) const
                     {
                         return l < r.key_;
-                    };
+                    }
                 };
                 if (!is_cached())
                 {
@@ -853,24 +853,24 @@ namespace crow // NOTE: Already documented in "crow/app.h"
             return l != r.s();
         }
 
-        inline bool operator==(const rvalue& l, double r)
+        inline bool operator==(const rvalue& l, const int& r)
         {
-            return l.d() == r;
+          return l.i() == r;
         }
 
-        inline bool operator==(double l, const rvalue& r)
+        inline bool operator==(const int& l, const rvalue& r)
         {
-            return l == r.d();
+          return l == r.i();
         }
 
-        inline bool operator!=(const rvalue& l, double r)
+        inline bool operator!=(const rvalue& l, const int& r)
         {
-            return l.d() != r;
+          return l.i() != r;
         }
 
-        inline bool operator!=(double l, const rvalue& r)
+        inline bool operator!=(const int& l, const rvalue& r)
         {
-            return l != r.d();
+          return l != r.i();
         }
 
 
@@ -899,7 +899,7 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                 {
                     while (*data == ' ' || *data == '\t' || *data == '\r' || *data == '\n')
                         ++data;
-                };
+                }
 
                 rvalue decode_string()
                 {

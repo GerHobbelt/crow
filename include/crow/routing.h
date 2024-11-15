@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 // clang-format off
 
 #include "crow/settings.h"
@@ -803,7 +803,7 @@ namespace crow // NOTE: Already documented in "crow/app.h"
             }
         }
 
-        void debug_node_print(const Node& node, int level)
+        void debug_node_print(const Node& node, size_t level)
         {
             if (node.param != ParamType::MAX)
             {
@@ -1120,16 +1120,17 @@ namespace crow // NOTE: Already documented in "crow/app.h"
     class Blueprint
     {
     public:
-        Blueprint(const std::string& prefix):
-          prefix_(prefix),
-          static_dir_(prefix),
-          templates_dir_(prefix){};
+        Blueprint(const std::string& prefix)
+          : prefix_(prefix),
+            static_dir_(prefix),
+            templates_dir_(prefix)
+            {}
 
         Blueprint(const std::string& prefix, const std::string& static_dir):
-          prefix_(prefix), static_dir_(static_dir){};
+          prefix_(prefix), static_dir_(static_dir){}
 
         Blueprint(const std::string& prefix, const std::string& static_dir, const std::string& templates_dir):
-          prefix_(prefix), static_dir_(static_dir), templates_dir_(templates_dir){};
+          prefix_(prefix), static_dir_(static_dir), templates_dir_(templates_dir){}
 
         /*
         Blueprint(Blueprint& other)

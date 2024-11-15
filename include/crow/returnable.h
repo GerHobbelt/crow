@@ -16,6 +16,6 @@ namespace crow
           content_type{ctype}
         {}
 
-        virtual ~returnable(){};
+        virtual ~returnable(){}
     };
 } // namespace crow
