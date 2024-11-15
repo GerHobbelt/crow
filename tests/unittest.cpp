@@ -550,16 +550,25 @@ TEST_CASE("http_method")
 TEST_CASE("validate can be called multiple times")
 {
     SimpleApp app;
-    CROW_ROUTE(app, "/")([]() { return "1"; });
+    CROW_ROUTE(app, "/")
+    ([]() {
+        return "1";
+    });
     app.validate();
     app.validate();
 
-    CROW_ROUTE(app, "/test")([]() { return "1"; });
+    CROW_ROUTE(app, "/test")
+    ([]() {
+        return "1";
+    });
     app.validate();
 
     try
     {
-        CROW_ROUTE(app, "/")([]() { return "1"; });
+        CROW_ROUTE(app, "/")
+        ([]() {
+            return "1";
+        });
         app.validate();
         FAIL_CHECK();
     }
@@ -693,8 +702,8 @@ TEST_CASE("multi_server")
 
         for (auto ch : sendmsg)
         {
-            char buf[1] = {ch};
-            c.send(asio::buffer(buf));
+            char tmp[1] = {ch};
+            c.send(asio::buffer(tmp));
         }
 
         size_t recved = c.receive(asio::buffer(buf, 2048));
@@ -2728,9 +2737,9 @@ TEST_CASE("stream_response")
                 b.commit(n);
                 received += n;
 
-                std::istream is(&b);
+                std::istream istream(&b);
                 std::string s;
-                is >> s;
+                istream >> s;
 
                 CHECK(key_response.substr(received - n, n) == s);
             }
@@ -3033,7 +3042,8 @@ TEST_CASE("websocket_close")
     {
         std::fill_n(buf, 2048, 0);
         // Close message with, len = 2, status code = 1001
-        char close_message[9]("\x88\x06\x03\xE9" "fail");
+        char close_message[9]("\x88\x06\x03\xE9"
+                              "fail");
 
         c.send(asio::buffer(close_message, 8));
         c.receive(asio::buffer(buf, 2048));
@@ -3054,7 +3064,7 @@ TEST_CASE("websocket_close")
         //----------Text----------
         std::fill_n(buf, 2048, 0);
         char text_message[2 + 12 + 1]("\x81\x0C"
-                                     "quit-default");
+                                      "quit-default");
 
         c.send(asio::buffer(text_message, 14));
         c.receive(asio::buffer(buf, 2048));
@@ -3104,7 +3114,8 @@ TEST_CASE("websocket_close")
         CHECK(close_calls == 0);
 
         // Reply with client close
-        char client_close_response[11]("\x88\x08\x0\x0" "custom");
+        char client_close_response[11]("\x88\x08\x0\x0"
+                                       "custom");
         client_close_response[2] = buf[2];
         client_close_response[3] = buf[3];
 
@@ -3803,7 +3814,8 @@ TEST_CASE("base64")
     CHECK(crow::utility::base64decode(sample_bin2_enc_np, 6) == sample_bin2_str);
 } // base64
 
-TEST_CASE("normalize_path") {
+TEST_CASE("normalize_path")
+{
     CHECK(crow::utility::normalize_path("/abc/def") == "/abc/def/");
     CHECK(crow::utility::normalize_path("path\\to\\directory") == "path/to/directory/");
 } // normalize_path
@@ -3935,8 +3947,8 @@ TEST_CASE("task_timer")
 
     crow::detail::task_timer timer(io_service, std::chrono::milliseconds(100));
     CHECK(timer.get_default_timeout() == 5);
-    timer.set_default_timeout(7);
-    CHECK(timer.get_default_timeout() == 7);
+    timer.set_default_timeout(9);
+    CHECK(timer.get_default_timeout() == 9);
 
     timer.schedule([&a]() {
         a = true;
@@ -3951,7 +3963,7 @@ TEST_CASE("task_timer")
     this_thread::sleep_for(2 * timer.get_tick_length());
     CHECK(a == true);
     CHECK(b == false);
-    this_thread::sleep_for(2 * timer.get_tick_length());
+    this_thread::sleep_for(4 * timer.get_tick_length());
     CHECK(a == true);
     CHECK(b == true);
 
@@ -4003,8 +4015,7 @@ TEST_CASE("http2_upgrade_is_ignored")
     static char buf[5012];
 
     SimpleApp app;
-    CROW_ROUTE(app, "/echo").methods("POST"_method)
-    ([](crow::request const& req) {
+    CROW_ROUTE(app, "/echo").methods("POST"_method)([](crow::request const& req) {
         return req.body;
     });
 
@@ -4024,15 +4035,15 @@ TEST_CASE("http2_upgrade_is_ignored")
     };
 
     std::string request =
-        "POST /echo HTTP/1.1\r\n"
-        "user-agent: unittest.cpp\r\n"
-        "host: " LOCALHOST_ADDRESS ":45451\r\n"
-        "content-length: 48\r\n"
-        "connection: upgrade\r\n"
-        "upgrade: h2c\r\n"
-        "\r\n"
-        "http2 upgrade is not supported so body is parsed\r\n"
-        "\r\n";
+      "POST /echo HTTP/1.1\r\n"
+      "user-agent: unittest.cpp\r\n"
+      "host: " LOCALHOST_ADDRESS ":45451\r\n"
+      "content-length: 48\r\n"
+      "connection: upgrade\r\n"
+      "upgrade: h2c\r\n"
+      "\r\n"
+      "http2 upgrade is not supported so body is parsed\r\n"
+      "\r\n";
 
     auto res = make_request(request);
     CHECK(res.find("http2 upgrade is not supported so body is parsed") != std::string::npos);

@@ -46,7 +46,7 @@ namespace crow
 
     /// An HTTP connection.
     template<typename Adaptor, typename Handler, typename... Middlewares>
-    class Connection: public std::enable_shared_from_this<Connection<Adaptor, Handler, Middlewares...>>
+    class Connection : public std::enable_shared_from_this<Connection<Adaptor, Handler, Middlewares...>>
     {
         friend struct crow::response;
 
@@ -196,7 +196,6 @@ namespace crow
 
                 if (!res.completed_)
                 {
-                    auto self = this->shared_from_this();
                     res.complete_request_handler_ = [self] {
                         self->complete_request();
                     };
@@ -458,12 +457,12 @@ namespace crow
                 if (res.body.length() > 0)
                 {
                     std::vector<asio::const_buffer> buffers{1};
-                    const uint8_t *data = reinterpret_cast<const uint8_t*>(res.body.data());
+                    const uint8_t* data = reinterpret_cast<const uint8_t*>(res.body.data());
                     size_t length = res.body.length();
-                    for(size_t transferred = 0; transferred < length;)
+                    for (size_t transferred = 0; transferred < length;)
                     {
-                        size_t to_transfer = CROW_MIN(16384UL, length-transferred);
-                        buffers[0] = asio::const_buffer(data+transferred, to_transfer);
+                        size_t to_transfer = CROW_MIN(16384UL, length - transferred);
+                        buffers[0] = asio::const_buffer(data + transferred, to_transfer);
                         do_write_sync(buffers);
                         transferred += to_transfer;
                     }
