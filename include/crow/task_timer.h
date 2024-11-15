@@ -30,7 +30,7 @@ namespace crow
     {
 
         /// A class for scheduling functions to be called after a specific
-        /// amount of ticks. Ther tick length can  be handed over in constructor, 
+        /// amount of ticks. The tick length can be handed over in constructor, 
         /// the default tick length is equal to 1 second.
         class task_timer
         {
@@ -67,7 +67,6 @@ namespace crow
 
             /// Schedule the given task to be executed after the default amount
             /// of ticks.
-
             ///
             /// \return identifier_type Used to cancel the thread.
             /// It is not bound to this task_timer instance and in some cases
