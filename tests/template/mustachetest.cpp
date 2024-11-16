@@ -41,6 +41,7 @@ int main(void)
     // catch and return compile errors as text, for the python test to compare
     catch (invalid_template_exception & err) {
         cout << "COMPILE EXCEPTION: " << err.what();
+		return 1;
     }
     return 0;
 }
