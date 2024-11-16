@@ -62,7 +62,16 @@ namespace crow
                     prefix = "CRITICAL";
                     break;
             }
+
+#if defined(CROW_DISABLE_LOG_TIMESTAMP) && !defined(CROW_DISABLE_LOG_PREFIX)
+            std::cerr << std::string("[") + prefix + std::string("] ") + message << std::endl;
+#elif !defined(CROW_DISABLE_LOG_TIMESTAMP) && defined(CROW_DISABLE_LOG_PREFIX)
+            std::cerr << std::string("(") + timestamp() + std::string(") ") message << std::endl;
+#elif !defined(CROW_DISABLE_LOG_TIMESTAMP) && !defined(CROW_DISABLE_LOG_PREFIX)
             std::cerr << std::string("(") + timestamp() + std::string(") [") + prefix + std::string("] ") + message << std::endl;
+#else // defined(CROW_DISABLE_LOG_TIMESTAMP) && defined(CROW_DISABLE_LOG_PREFIX)
+            std::cerr << message << std::endl;
+#endif
         }
 
     private:

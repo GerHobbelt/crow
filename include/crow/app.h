@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include "crow/settings.h"
+
 #include <chrono>
 #include <string>
 #include <functional>
@@ -28,7 +30,6 @@
 #include <condition_variable>
 
 #include "crow/version.h"
-#include "crow/settings.h"
 #include "crow/logging.h"
 #include "crow/utility.h"
 #include "crow/routing.h"
@@ -252,6 +253,7 @@ namespace crow
             return router_.new_rule_dynamic(rule);
         }
 
+#if (__cplusplus < 201703L)
         /// \brief Create a route using a rule (**Use CROW_ROUTE instead**)
         template<uint64_t Tag>
 #ifdef CROW_GCC83_WORKAROUND
@@ -267,6 +269,13 @@ namespace crow
         {
             return router_.new_rule_tagged<Tag>(rule);
         }
+#else
+        template <uint64_t Tag>
+        auto& route(const std::string&& rule)
+        {
+            return router_.new_rule_tagged<Tag>(rule);
+        }
+#endif
 
         /// \brief Create a route for any requests without a proper route (**Use CROW_CATCHALL_ROUTE instead**)
         CatchallRule& catchall_route()
@@ -314,7 +323,20 @@ namespace crow
         /// \brief Get the port that Crow will handle requests on
         std::uint16_t port() const
         {
-            return port_;
+            if (!server_started_)
+            {
+                return port_;
+            }
+#ifdef CROW_ENABLE_SSL
+            if (ssl_used_)
+            {
+                return ssl_server_->port();
+            }
+            else
+#endif
+            {
+                return server_->port();
+            }
         }
 
         /// \brief Set the connection timeout in seconds (default is 5)
@@ -351,7 +373,7 @@ namespace crow
         }
 
         /// \brief Run the server on multiple threads using a specific number
-        self_t& concurrency(std::uint16_t concurrency)
+        self_t& concurrency(unsigned int concurrency)
         {
             if (concurrency < 2) // Crow can have a minimum of 2 threads running
                 concurrency = 2;
@@ -504,6 +526,7 @@ namespace crow
 #ifdef CROW_ENABLE_SSL
             if (ssl_used_)
             {
+                router_.using_ssl = true;
                 ssl_server_ = std::move(std::unique_ptr<ssl_server_t>(new ssl_server_t(this, bindaddr_, port_, server_name_, &middlewares_, concurrency_, timeout_, &ssl_context_)));
                 ssl_server_->set_tick_function(tick_interval_, tick_function_);
                 ssl_server_->signal_clear();
@@ -519,6 +542,7 @@ namespace crow
             {
                 server_ = std::move(std::unique_ptr<server_t>(new server_t(this, bindaddr_, port_, server_name_, &middlewares_, concurrency_, timeout_, nullptr)));
                 server_->set_tick_function(tick_interval_, tick_function_);
+                server_->signal_clear();
                 for (auto snum : signals_)
                 {
                     server_->signal_add(snum);
@@ -689,19 +713,32 @@ namespace crow
         }
 
         /// \brief Wait until the server has properly started
-        void wait_for_server_start()
+        std::cv_status wait_for_server_start(std::chrono::milliseconds wait_timeout = std::chrono::milliseconds(3000))
         {
+            std::cv_status status = std::cv_status::no_timeout;
+            auto wait_until = std::chrono::steady_clock::now() + wait_timeout;
             {
                 std::unique_lock<std::mutex> lock(start_mutex_);
-                while (!server_started_)
-                    cv_started_.wait(lock);
+                while (!server_started_ && (status == std::cv_status::no_timeout))
+                {
+                    status = cv_started_.wait_until(lock, wait_until);
+                }
             }
-            if (server_)
-                server_->wait_for_start();
+            
+            if (status == std::cv_status::no_timeout)
+            {
+                if (server_)
+                {
+                    status = server_->wait_for_start(wait_until);
+                }
 #ifdef CROW_ENABLE_SSL
-            else if (ssl_server_)
-                ssl_server_->wait_for_start();
+                else if (ssl_server_)
+                {
+                    status = ssl_server_->wait_for_start(wait_until);
+                }
 #endif
+            }
+            return status;
         }
 
     private:
@@ -733,7 +770,7 @@ namespace crow
     private:
         std::uint8_t timeout_{5};
         uint16_t port_ = 80;
-        uint16_t concurrency_ = 2;
+        unsigned int concurrency_ = 2;
         uint64_t max_payload_{UINT64_MAX};
         std::string server_name_ = std::string("Crow/") + VERSION;
         std::string bindaddr_ = "0.0.0.0";

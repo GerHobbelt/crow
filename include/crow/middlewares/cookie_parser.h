@@ -1,4 +1,7 @@
 #pragma once
+
+#include "crow/settings.h"
+
 #include <iomanip>
 #include <memory>
 #include "crow/utility.h"

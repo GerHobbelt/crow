@@ -54,3 +54,9 @@ html/
 
 #VS-Code
 .vscode
+
+# CMake build directory
+/b/
+
+# MSVC IDE
+/.vs

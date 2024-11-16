@@ -1,5 +1,7 @@
 #pragma once
 
+#include "crow/settings.h"
+
 #ifdef CROW_USE_BOOST
 #include <boost/asio.hpp>
 #include <boost/asio/version.hpp>
@@ -16,9 +18,8 @@
 #include <asio/ssl.hpp>
 #endif
 #endif
-#include "crow/settings.h"
 
-#if (CROW_USE_BOOST && BOOST_VERSION >= 107000) || (ASIO_VERSION >= 101300)
+#if (CROW_USE_BOOST && BOOST_VERSION >= 107000) || (defined(ASIO_VERSION) && (ASIO_VERSION >= 101300))
 #define GET_IO_SERVICE(s) ((asio::io_context&)(s).get_executor().context())
 #else
 #define GET_IO_SERVICE(s) ((s).get_io_service())

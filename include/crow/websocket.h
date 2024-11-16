@@ -1,8 +1,12 @@
 #pragma once
+
+#include "crow/settings.h"
+
 #include <array>
 #include "crow/logging.h"
 #include "crow/socket_adaptors.h"
 #include "crow/http_request.h"
+#include "crow/task_timer.h"
 #include "crow/TinySHA1.hpp"
 #include "crow/utility.h"
 
@@ -100,22 +104,23 @@ namespace crow // NOTE: Already documented in "crow/app.h"
         //
 
         /// A websocket connection.
-
         template<typename Adaptor, typename Handler>
         class Connection : public connection
         {
         public:
+            ///
             /// Constructor for a connection.
-
             ///
             /// Requires a request with an "Upgrade: websocket" header.<br>
             /// Automatically handles the handshake.
+            ///
             Connection(const crow::request& req, Adaptor&& adaptor, Handler* handler,
                        uint64_t max_payload, const std::vector<std::string>& subprotocols,
                        std::function<void(crow::websocket::connection&)> open_handler,
                        std::function<void(crow::websocket::connection&, const std::string&, bool)> message_handler,
                        std::function<void(crow::websocket::connection&, const std::string&, uint16_t)> close_handler,
                        std::function<void(crow::websocket::connection&, const std::string&)> error_handler,
+                       std::pair<std::function<void(crow::websocket::connection&, const std::string&)>, uint64_t> receiver_timeout_handler,
                        std::function<bool(const crow::request&, void**)> accept_handler):
               adaptor_(std::move(adaptor)),
               handler_(handler),
@@ -124,7 +129,9 @@ namespace crow // NOTE: Already documented in "crow/app.h"
               message_handler_(std::move(message_handler)),
               close_handler_(std::move(close_handler)),
               error_handler_(std::move(error_handler)),
-              accept_handler_(std::move(accept_handler))
+              timeout_handler_(std::move(receiver_timeout_handler)),
+              accept_handler_(std::move(accept_handler)),
+              task_timer_(adaptor_.get_io_service())
             {
                 if (!utility::string_equals(req.get_header_value("upgrade"), "websocket"))
                 {
@@ -216,19 +223,21 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                              std::forward<CompletionHandler>(handler), anchor_});
             }
 
+            ///
             /// Send a "Ping" message.
-
             ///
             /// Usually invoked to check if the other point is still online.
+            ///
             void send_ping(std::string msg) override
             {
                 send_data(0x9, std::move(msg));
             }
 
+            ///
             /// Send a "Pong" message.
-
             ///
             /// Usually automatically invoked as a response to a "Ping" message.
+            ///
             void send_pong(std::string msg) override
             {
                 send_data(0xA, std::move(msg));
@@ -276,10 +285,11 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                 send_data(0x1, std::move(msg));
             }
 
+            ///
             /// Send a close signal.
-
             ///
             /// Sets a flag to destroy the object once the message is sent.
+            ///
             void close(std::string const& msg, uint16_t status_code) override
             {
                 dispatch([this, msg, status_code]() mutable {
@@ -322,7 +332,7 @@ namespace crow // NOTE: Already documented in "crow/app.h"
             std::string build_header(int opcode, size_t size)
             {
                 char buf[2 + 8] = "\x80\x00";
-                buf[0] += opcode;
+                buf[0] += static_cast<char>(opcode);
                 if (size < 126)
                 {
                     buf[1] += static_cast<char>(size);
@@ -342,10 +352,11 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                 }
             }
 
+            ///
             /// Send the HTTP upgrade response.
-
             ///
             /// Finishes the handshake process, then starts reading messages from the socket.
+            ///
             void start(std::string&& hello)
             {
                 static const std::string header =
@@ -369,13 +380,36 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                 do_read();
             }
 
-            /// Read a websocket message.
+            /// Set the websocket timeout and activate the timer.
+            void start_deadline(/*int timeout = 5*/)
+            {
+                cancel_deadline_timer();
 
+                if (close_connection_ || !timeout_handler_.first) return;
+
+                task_timer_.set_default_timeout(timeout_handler_.second);
+                task_id_ = task_timer_.schedule([this] {
+                    timeout_handler_.first(*this, "timeout");
+                });
+                CROW_LOG_DEBUG << this << " websocket timer added: " << &task_timer_ << ' ' << task_id_;
+            }
+
+            /// Cancel the websocket timeout and timer.
+            void cancel_deadline_timer()
+            {
+                if (!timeout_handler_.first) return;
+                CROW_LOG_DEBUG << this << " websocket timer cancelled: " << &task_timer_ << ' ' << task_id_;
+                task_timer_.cancel(task_id_);
+            }
+
+            ///
+            /// Read a websocket message.
             ///
             /// Involves:<br>
             /// Handling headers (opcodes, size).<br>
             /// Unmasking the payload.<br>
             /// Reading the actual payload.<br>
+            ///
             void do_read()
             {
                 if (has_sent_close_ && has_recv_close_)
@@ -386,6 +420,8 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                     check_destroy();
                     return;
                 }
+
+                start_deadline();
 
                 is_reading = true;
                 switch (state_)
@@ -631,10 +667,11 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                 return (mini_header_ & 0x0f00) >> 8;
             }
 
+            ///
             /// Process the payload fragment.
-
             ///
             /// Unmasks the fragment, checks the opcode, merges fragments into 1 message body, and calls the appropriate handler.
+            ///
             bool handle_fragment()
             {
                 if (has_mask_)
@@ -735,10 +772,11 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                 return true;
             }
 
+            ///
             /// Send the buffers' data through the socket.
-
             ///
             /// Also destroys the object if the Close flag is set.
+            ///
             void do_write()
             {
                 if (sending_buffers_.empty())
@@ -852,7 +890,11 @@ namespace crow // NOTE: Already documented in "crow/app.h"
             std::function<void(crow::websocket::connection&, const std::string&, bool)> message_handler_;
             std::function<void(crow::websocket::connection&, const std::string&, uint16_t status_code)> close_handler_;
             std::function<void(crow::websocket::connection&, const std::string&)> error_handler_;
+            std::pair<std::function<void(crow::websocket::connection&, const std::string&)>, uint64_t> timeout_handler_;
             std::function<bool(const crow::request&, void**)> accept_handler_;
+
+            detail::task_timer task_timer_;
+            detail::task_timer::identifier_type task_id_;
         };
     } // namespace websocket
 } // namespace crow

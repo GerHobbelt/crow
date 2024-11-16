@@ -1,5 +1,7 @@
 #pragma once
 
+#include "crow/settings.h"
+
 #ifdef CROW_USE_BOOST
 #include <boost/asio.hpp>
 #else
@@ -44,7 +46,7 @@ namespace crow
 
     /// An HTTP connection.
     template<typename Adaptor, typename Handler, typename... Middlewares>
-    class Connection: public std::enable_shared_from_this<Connection<Adaptor, Handler, Middlewares...>>
+    class Connection : public std::enable_shared_from_this<Connection<Adaptor, Handler, Middlewares...>>
     {
         friend struct crow::response;
 
@@ -194,7 +196,6 @@ namespace crow
 
                 if (!res.completed_)
                 {
-                    auto self = this->shared_from_this();
                     res.complete_request_handler_ = [self] {
                         self->complete_request();
                     };
@@ -232,7 +233,7 @@ namespace crow
                   decltype(*middlewares_)>({}, *middlewares_, ctx_, req_, res);
             }
 #ifdef CROW_ENABLE_COMPRESSION
-            if (handler_->compression_used())
+            if (!res.body.empty() && handler_->compression_used())
             {
                 std::string accept_encoding = req_.get_header_value("Accept-Encoding");
                 if (!accept_encoding.empty() && res.compressed)
@@ -292,8 +293,7 @@ namespace crow
 
             if (!adaptor_.is_open())
             {
-                //CROW_LOG_DEBUG << this << " delete (socket is closed) " << is_reading << ' ' << is_writing;
-                //delete this;
+                //CROW_LOG_DEBUG << this << " delete (socket is closed) ";
                 return;
             }
             // TODO(EDev): HTTP version in status codes should be dynamic
@@ -331,6 +331,7 @@ namespace crow
               {status::UNSUPPORTED_MEDIA_TYPE, "HTTP/1.1 415 Unsupported Media Type\r\n"},
               {status::RANGE_NOT_SATISFIABLE, "HTTP/1.1 416 Range Not Satisfiable\r\n"},
               {status::EXPECTATION_FAILED, "HTTP/1.1 417 Expectation Failed\r\n"},
+              {status::UNPROCESSED_ENTITY, "HTTP/1.1 422 Unprocessable Entity\r\n"},
               {status::PRECONDITION_REQUIRED, "HTTP/1.1 428 Precondition Required\r\n"},
               {status::TOO_MANY_REQUESTS, "HTTP/1.1 429 Too Many Requests\r\n"},
               {status::UNAVAILABLE_FOR_LEGAL_REASONS, "HTTP/1.1 451 Unavailable For Legal Reasons\r\n"},
@@ -367,7 +368,7 @@ namespace crow
                 buffers_.emplace_back(kv.first.data(), kv.first.size());
                 buffers_.emplace_back(seperator.data(), seperator.size());
                 buffers_.emplace_back(kv.second.data(), kv.second.size());
-                buffers_.emplace_back(crlf.data(), crlf.size());
+                buffers_.emplace_back(crlf, crlf_size);
             }
 
             if (!res.manual_length_header && !res.headers.count("content-length"))
@@ -376,14 +377,14 @@ namespace crow
                 static std::string content_length_tag = "Content-Length: ";
                 buffers_.emplace_back(content_length_tag.data(), content_length_tag.size());
                 buffers_.emplace_back(content_length_.data(), content_length_.size());
-                buffers_.emplace_back(crlf.data(), crlf.size());
+                buffers_.emplace_back(crlf, crlf_size);
             }
             if (!res.headers.count("server"))
             {
                 static std::string server_tag = "Server: ";
                 buffers_.emplace_back(server_tag.data(), server_tag.size());
                 buffers_.emplace_back(server_name_.data(), server_name_.size());
-                buffers_.emplace_back(crlf.data(), crlf.size());
+                buffers_.emplace_back(crlf, crlf_size);
             }
             if (!res.headers.count("date"))
             {
@@ -391,16 +392,16 @@ namespace crow
                 date_str_ = get_cached_date_str();
                 buffers_.emplace_back(date_tag.data(), date_tag.size());
                 buffers_.emplace_back(date_str_.data(), date_str_.size());
-                buffers_.emplace_back(crlf.data(), crlf.size());
+                buffers_.emplace_back(crlf, crlf_size);
             }
             if (add_keep_alive_)
             {
                 static std::string keep_alive_tag = "Connection: Keep-Alive";
                 buffers_.emplace_back(keep_alive_tag.data(), keep_alive_tag.size());
-                buffers_.emplace_back(crlf.data(), crlf.size());
+                buffers_.emplace_back(crlf, crlf_size);
             }
 
-            buffers_.emplace_back(crlf.data(), crlf.size());
+            buffers_.emplace_back(crlf, crlf_size);
         }
 
         void do_write_static()
@@ -456,12 +457,12 @@ namespace crow
                 if (res.body.length() > 0)
                 {
                     std::vector<asio::const_buffer> buffers{1};
-                    const uint8_t *data = reinterpret_cast<const uint8_t*>(res.body.data());
+                    const uint8_t* data = reinterpret_cast<const uint8_t*>(res.body.data());
                     size_t length = res.body.length();
-                    for(size_t transferred = 0; transferred < length;)
+                    for (size_t transferred = 0; transferred < length;)
                     {
-                        size_t to_transfer = CROW_MIN(16384UL, length-transferred);
-                        buffers[0] = asio::const_buffer(data+transferred, to_transfer);
+                        size_t to_transfer = CROW_MIN(16384UL, length - transferred);
+                        buffers[0] = asio::const_buffer(data + transferred, to_transfer);
                         do_write_sync(buffers);
                         transferred += to_transfer;
                     }

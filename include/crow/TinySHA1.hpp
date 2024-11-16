@@ -28,6 +28,9 @@
  */
 #ifndef _TINY_SHA1_HPP_
 #define _TINY_SHA1_HPP_
+
+#include "crow/settings.h"
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

@@ -1,6 +1,14 @@
 // This file is generated from nginx/conf/mime.types using nginx_mime2cpp.py on 2021-12-03.
+
+#pragma once
+
 #include <unordered_map>
 #include <string>
+
+#include "crow/debugheap.h"
+
+
+FZ_HEAPDBG_TRACKER_SECTION_START_MARKER(CROW_MIME_)
 
 namespace crow
 {
@@ -117,3 +125,5 @@ namespace crow
       {"wmv", "video/x-ms-wmv"},
       {"avi", "video/x-msvideo"}};
 }
+
+FZ_HEAPDBG_TRACKER_SECTION_END_MARKER(CROW_MIME_)

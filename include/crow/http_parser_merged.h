@@ -13,11 +13,16 @@
 
 // clang-format off
 #pragma once
-extern "C" {
+
+#include "crow/settings.h"
+
 #include <stddef.h>
 #if defined(_WIN32) && !defined(__MINGW32__) && \
   (!defined(_MSC_VER) || _MSC_VER<1600) && !defined(__WINE__)
 #include <BaseTsd.h>
+#if defined __cplusplus
+extern "C" {
+#endif
 typedef __int8 int8_t;
 typedef unsigned __int8 uint8_t;
 typedef __int16 int16_t;
@@ -26,6 +31,9 @@ typedef __int32 int32_t;
 typedef unsigned __int32 uint32_t;
 typedef __int64 int64_t;
 typedef unsigned __int64 uint64_t;
+#if defined __cplusplus
+}
+#endif
 #elif (defined(__sun) || defined(__sun__)) && defined(__SunOS_5_9)
 #include <sys/inttypes.h>
 #else
@@ -35,7 +43,6 @@ typedef unsigned __int64 uint64_t;
 #include <ctype.h>
 #include <string.h>
 #include <limits.h>
-}
 
 #include "crow/common.h"
 namespace crow
@@ -65,7 +72,7 @@ typedef struct http_parser_settings http_parser_settings;
  *
  * Returning `2` from on_headers_complete will tell parser that it should not
  * expect neither a body nor any futher responses on this connection. This is
- * useful for handling responses to a CONNECT request which may not contain
+ * useful for handling responses to a Connect request which may not contain
  * `Upgrade` or `Connection: upgrade` headers.
  *
  * http_data_cb does not return data chunks. It will be called arbitrarally
@@ -533,7 +540,7 @@ static const uint8_t normal_url_char[32] = {
   switch (s) {
     case s_req_spaces_before_url:
       /* Proxied requests are followed by scheme of an absolute URI (alpha).
-       * All methods except CONNECT are followed by '/' or '*'.
+       * All methods except Connect are followed by '/' or '*'.
        */
 
       if (ch == '/' || ch == '*') {
@@ -830,7 +837,7 @@ reexecute:
 
             CROW_XX(Post,      1, 'U', Put)
             CROW_XX(Post,      1, 'A', Patch)
-            CROW_XX(Post,      1, 'R', Propfind)
+            CROW_XX(Post,      1, 'R', PropFind)
             CROW_XX(Put,       2, 'R', Purge)
             CROW_XX(Connect,   1, 'H', Checkout)
             CROW_XX(Connect,   2, 'P', Copy)
@@ -842,7 +849,7 @@ reexecute:
             CROW_XX(Subscribe, 1, 'E', Search)
             CROW_XX(Subscribe, 1, 'O', Source)
             CROW_XX(Report,    2, 'B', Rebind)
-            CROW_XX(Propfind,  4, 'P', Proppatch)
+            CROW_XX(PropFind,  4, 'P', PropPatch)
             CROW_XX(Lock,      1, 'I', Link)
             CROW_XX(Unlock,    2, 'S', Unsubscribe)
             CROW_XX(Unlock,    2, 'B', Unbind)
@@ -1614,7 +1621,7 @@ reexecute:
         /* Here we call the headers_complete callback. This is somewhat
          * different than other callbacks because if the user returns 1, we
          * will interpret that as saying that this message has no body. This
-         * is needed for the annoying case of recieving a response to a HEAD
+         * is needed for the annoying case of receiving a response to a HEAD
          * request.
          *
          * We'd like to use CROW_CALLBACK_NOTIFY_NOADVANCE() here but we cannot, so
@@ -1770,7 +1777,7 @@ reexecute:
       case s_chunk_size_start:
       {
         assert(nread == 1);
-        assert(parser->flags & F_CHUNKED);
+        assert((parser->flags & F_CHUNKED) == 0);
 
         unhex_val = unhex[static_cast<unsigned char>(ch)];
         if (CROW_UNLIKELY(unhex_val == -1)) {
@@ -1787,7 +1794,7 @@ reexecute:
       {
         uint64_t t;
 
-        assert(parser->flags & F_CHUNKED);
+        assert((parser->flags & F_CHUNKED) == 0);
 
         if (ch == cr) {
           parser->state = s_chunk_size_almost_done;
@@ -1822,7 +1829,7 @@ reexecute:
 
       case s_chunk_parameters:
       {
-        assert(parser->flags & F_CHUNKED);
+        assert((parser->flags & F_CHUNKED) == 0);
         /* just ignore this shit. TODO check for overflow */
         if (ch == cr) {
           parser->state = s_chunk_size_almost_done;
@@ -1833,7 +1840,7 @@ reexecute:
 
       case s_chunk_size_almost_done:
       {
-        assert(parser->flags & F_CHUNKED);
+        assert((parser->flags & F_CHUNKED) == 0);
         CROW_STRICT_CHECK(ch != lf);
 
         parser->nread = 0;
@@ -1853,7 +1860,7 @@ reexecute:
         uint64_t to_read = CROW_MIN(parser->content_length,
                                (uint64_t) ((data + len) - p));
 
-        assert(parser->flags & F_CHUNKED);
+        assert((parser->flags & F_CHUNKED) == 0);
         assert(parser->content_length != 0
             && parser->content_length != CROW_ULLONG_MAX);
 
@@ -1872,7 +1879,7 @@ reexecute:
       }
 
       case s_chunk_data_almost_done:
-        assert(parser->flags & F_CHUNKED);
+        assert((parser->flags & F_CHUNKED) == 0);
         assert(parser->content_length == 0);
         CROW_STRICT_CHECK(ch != cr);
         parser->state = s_chunk_data_done;
@@ -1880,7 +1887,7 @@ reexecute:
         break;
 
       case s_chunk_data_done:
-        assert(parser->flags & F_CHUNKED);
+        assert((parser->flags & F_CHUNKED) == 0);
         CROW_STRICT_CHECK(ch != lf);
         parser->nread = 0;
         nread = 0;

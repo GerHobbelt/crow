@@ -3,13 +3,19 @@
 
 // Warning!
 // If you want to use CORS with OPTIONS cache on browser requests,
-// be sure to specify each headers you use, please do not use "*"
+// be sure to specify each header you use, please do not use "*"
 // else otherwise the browser will ignore you
 // Example:
 //    .headers("Origin", "Content-Type", "Accept", *Your-Headers*)
 //    .max_age(5);
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main	crow_example_middleware_cors_main
+#endif
+
+int main(void)
 {
     // Enable CORS
     crow::App<crow::CORSHandler> app;

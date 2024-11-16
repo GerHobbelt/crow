@@ -1,5 +1,7 @@
 #pragma once
 
+#include "crow/settings.h"
+
 #include <string_view>
 #include <locale>
 #include <unordered_map>

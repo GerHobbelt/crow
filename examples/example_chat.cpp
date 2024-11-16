@@ -1,14 +1,22 @@
 #include "crow.h"
+#include "crow/monolithic_examples.h"
+
 #include <string>
 #include <vector>
 #include <chrono>
 
+
 using namespace std;
 
-vector<string> msgs;
-vector<pair<crow::response*, decltype(chrono::steady_clock::now())>> ress;
 
-void broadcast(const string& msg)
+FZ_HEAPDBG_TRACKER_SECTION_START_MARKER(CROW_CHAT_)
+
+static vector<string> msgs;
+static vector<pair<crow::response*, decltype(chrono::steady_clock::now())>> ress;
+
+FZ_HEAPDBG_TRACKER_SECTION_END_MARKER(CROW_CHAT_)
+
+static void broadcast(const string& msg)
 {
     msgs.push_back(msg);
     crow::json::wvalue x;
@@ -23,8 +31,14 @@ void broadcast(const string& msg)
     }
     ress.clear();
 }
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main	crow_example_chat_main
+#endif
+
 // To see how it works go on {ip}:40080 but I just got it working with external build (not directly in IDE, I guess a problem with dependency)
-int main()
+int main(void)
 {
     crow::SimpleApp app;
     crow::mustache::set_base(".");
@@ -86,4 +100,7 @@ int main()
     app.port(40080)
       //.multithreaded()
       .run();
+
+	// when we get here, we may assume failure as the server code above should run indefinitely.
+	return EXIT_FAILURE;
 }

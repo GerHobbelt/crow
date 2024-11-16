@@ -1,8 +1,11 @@
 #pragma once
 
-//#define CROW_JSON_NO_ERROR_CHECK
-//#define CROW_JSON_USE_MAP
+#include "crow/settings.h"
 
+//#define CROW_JSON_NO_ERROR_CHECK
+#define CROW_JSON_USE_MAP
+
+#include <stdint.h>
 #include <string>
 #ifdef CROW_JSON_USE_MAP
 #include <map>
@@ -17,7 +20,6 @@
 #include <cfloat>
 
 #include "crow/utility.h"
-#include "crow/settings.h"
 #include "crow/returnable.h"
 #include "crow/logging.h"
 
@@ -34,6 +36,14 @@ namespace crow // NOTE: Already documented in "crow/app.h"
 
     namespace json
     {
+        static inline char to_hex(char c)
+        {
+            c = c & 0xf;
+            if (c < 10)
+                return '0' + c;
+            return 'a' + c - 10;
+        }
+
         inline void escape(const std::string& str, std::string& ret)
         {
             ret.reserve(ret.size() + str.size() + str.size() / 4);
@@ -52,12 +62,6 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                         if (c >= 0 && c < 0x20)
                         {
                             ret += "\\u00";
-                            auto to_hex = [](char c) {
-                                c = c & 0xf;
-                                if (c < 10)
-                                    return '0' + c;
-                                return 'a' + c - 10;
-                            };
                             ret += to_hex(c / 16);
                             ret += to_hex(c % 16);
                         }
@@ -118,9 +122,9 @@ namespace crow // NOTE: Already documented in "crow/app.h"
             /// A read string implementation with comparison functionality.
             struct r_string
             {
-                r_string(){};
+                r_string(){}
                 r_string(char* s, char* e):
-                  s_(s), e_(e){};
+                  s_(s), e_(e){}
                 ~r_string()
                 {
                     if (owned_)
@@ -552,15 +556,15 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                     bool operator()(const rvalue& l, const rvalue& r) const
                     {
                         return l.key_ < r.key_;
-                    };
+                    }
                     bool operator()(const rvalue& l, const std::string& r) const
                     {
                         return l.key_ < r;
-                    };
+                    }
                     bool operator()(const std::string& l, const rvalue& r) const
                     {
                         return l < r.key_;
-                    };
+                    }
                 };
                 if (!is_cached())
                 {
@@ -571,7 +575,7 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                 return it != end() && it->key_ == str;
             }
 
-            int count(const std::string& str)
+            int count(const std::string& str) const
             {
                 return has(str) ? 1 : 0;
             }
@@ -647,15 +651,15 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                     bool operator()(const rvalue& l, const rvalue& r) const
                     {
                         return l.key_ < r.key_;
-                    };
+                    }
                     bool operator()(const rvalue& l, const std::string& r) const
                     {
                         return l.key_ < r;
-                    };
+                    }
                     bool operator()(const std::string& l, const rvalue& r) const
                     {
                         return l < r.key_;
-                    };
+                    }
                 };
                 if (!is_cached())
                 {
@@ -666,7 +670,7 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                 if (it != end() && it->key_ == str)
                     return *it;
 #ifndef CROW_JSON_NO_ERROR_CHECK
-                throw std::runtime_error("cannot find key");
+                throw std::runtime_error("cannot find key: " + str);
 #else
                 static rvalue nullValue;
                 return nullValue;
@@ -849,24 +853,24 @@ namespace crow // NOTE: Already documented in "crow/app.h"
             return l != r.s();
         }
 
-        inline bool operator==(const rvalue& l, double r)
+        inline bool operator==(const rvalue& l, const int& r)
         {
-            return l.d() == r;
+          return l.i() == r;
         }
 
-        inline bool operator==(double l, const rvalue& r)
+        inline bool operator==(const int& l, const rvalue& r)
         {
-            return l == r.d();
+          return l == r.i();
         }
 
-        inline bool operator!=(const rvalue& l, double r)
+        inline bool operator!=(const rvalue& l, const int& r)
         {
-            return l.d() != r;
+          return l.i() != r;
         }
 
-        inline bool operator!=(double l, const rvalue& r)
+        inline bool operator!=(const int& l, const rvalue& r)
         {
-            return l != r.d();
+          return l != r.i();
         }
 
 
@@ -878,8 +882,8 @@ namespace crow // NOTE: Already documented in "crow/app.h"
             //static const char* escaped = "\"\\/\b\f\n\r\t";
             struct Parser
             {
-                Parser(char* data, size_t /*size*/):
-                  data(data)
+                Parser(char* data_, size_t /*size*/):
+                  data(data_)
                 {
                 }
 
@@ -895,7 +899,7 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                 {
                     while (*data == ' ' || *data == '\t' || *data == '\r' || *data == '\n')
                         ++data;
-                };
+                }
 
                 rvalue decode_string()
                 {
@@ -1175,7 +1179,7 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                         default:
                             return decode_number();
                     }
-                    return {};
+                    //return {};
                 }
 
                 rvalue decode_object(unsigned depth)
@@ -1281,7 +1285,6 @@ namespace crow // NOTE: Already documented in "crow/app.h"
         struct wvalue_reader;
 
         /// JSON write value.
-
         ///
         /// Value can mean any json value, including a JSON object.<br>
         /// Write means this class is used to primarily assemble JSON objects using keys and values and export those into a string.
@@ -1295,7 +1298,7 @@ namespace crow // NOTE: Already documented in "crow/app.h"
 #ifdef CROW_JSON_USE_MAP
               std::map<std::string, wvalue>;
 #else
-              std::unordered_map<std::string, wvalue>;
+              absl::flat_hash_map<std::string, wvalue>;
 #endif
 
             using list = std::vector<wvalue>;
@@ -1349,6 +1352,10 @@ namespace crow // NOTE: Already documented in "crow/app.h"
               returnable("application/json"), t_(type::Number), nt(num_type::Unsigned_integer), num(static_cast<std::uint64_t>(value)) {}
             wvalue(std::uint64_t value):
               returnable("application/json"), t_(type::Number), nt(num_type::Unsigned_integer), num(static_cast<std::uint64_t>(value)) {}
+#if defined(__LLP64__)   //#if defined(_MSC_VER)  // any LLP64 compiler, really; https://stackoverflow.com/questions/7456902/long-vs-int-c-c-whats-the-point
+			wvalue(unsigned long value):
+              returnable("application/json"), t_(type::Number), nt(num_type::Unsigned_integer), num(static_cast<std::uint64_t>(value)) {}
+#endif
 
             wvalue(std::int8_t value):
               returnable("application/json"), t_(type::Number), nt(num_type::Signed_integer), num(static_cast<std::int64_t>(value)) {}
@@ -1358,6 +1365,10 @@ namespace crow // NOTE: Already documented in "crow/app.h"
               returnable("application/json"), t_(type::Number), nt(num_type::Signed_integer), num(static_cast<std::int64_t>(value)) {}
             wvalue(std::int64_t value):
               returnable("application/json"), t_(type::Number), nt(num_type::Signed_integer), num(static_cast<std::int64_t>(value)) {}
+#if defined(__LLP64__) //#if defined(_MSC_VER)  // any LLP64 compiler, really; https://stackoverflow.com/questions/7456902/long-vs-int-c-c-whats-the-point
+            wvalue(long value):
+              returnable("application/json"), t_(type::Number), nt(num_type::Signed_integer), num(static_cast<std::int64_t>(value)) {}
+#endif
 
             wvalue(float value):
               returnable("application/json"), t_(type::Number), nt(num_type::Floating_point), num(static_cast<double>(value)) {}
@@ -1858,7 +1869,7 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                     {
                         if (v.nt == num_type::Floating_point || v.nt == num_type::Double_precision_floating_point)
                         {
-                            if (isnan(v.num.d) || isinf(v.num.d))
+                            if (std::isnan(v.num.d) || std::isinf(v.num.d))
                             {
                                 out += "null";
                                 CROW_LOG_WARNING << "Invalid JSON value detected (" << v.num.d << "), value set to null";
@@ -1887,7 +1898,8 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                                 snprintf(outbuf, sizeof(outbuf), "%f", v.num.d);
 #endif
                             }
-                            char *p = &outbuf[0], *o = nullptr; // o is the position of the first trailing 0
+                            char* p = &outbuf[0];
+                            char* pos_first_trailing_0 = nullptr;
                             f_state = start;
                             while (*p != '\0')
                             {
@@ -1909,22 +1921,22 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                                         if (ch == '0')
                                         {
                                             f_state = zero;
-                                            o = p;
+                                            pos_first_trailing_0 = p;
                                         }
                                         p++;
                                         break;
                                     case zero: // if a non 0 is found (e.g. 1.00004) remove the earlier recorded 0 position and look for more trailing 0s
                                         if (ch != '0')
                                         {
-                                            o = nullptr;
+                                            pos_first_trailing_0 = nullptr;
                                             f_state = decp;
                                         }
                                         p++;
                                         break;
                                 }
                             }
-                            if (o != nullptr) // if any trailing 0s are found, terminate the string where they begin
-                                *o = '\0';
+                            if (pos_first_trailing_0 != nullptr) // if any trailing 0s are found, terminate the string where they begin
+                                *pos_first_trailing_0 = '\0';
                             out += outbuf;
                         }
                         else if (v.nt == num_type::Signed_integer)

@@ -1,9 +1,15 @@
 #include "crow.h"
+#include "crow/monolithic_examples.h"
+
 #include <unordered_set>
 #include <mutex>
 
 
-int main()
+#if defined(BUILD_MONOLITHIC)
+#define main	crow_example_ws_main
+#endif
+
+int main(void)
 {
     crow::SimpleApp app;
 
@@ -44,4 +50,7 @@ int main()
     app.port(40080)
       .multithreaded()
       .run();
+
+	// when we get here, we may assume failure as the server code above should run indefinitely.
+	return EXIT_FAILURE;
 }

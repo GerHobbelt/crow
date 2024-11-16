@@ -1,4 +1,7 @@
 #pragma once
+
+#include "crow/settings.h"
+
 #include <string>
 #include <unordered_map>
 #include <ios>
@@ -11,7 +14,7 @@
 #endif
 #include <sys/stat.h>
 #if !defined(S_ISREG) && defined(S_IFMT) && defined(S_IFREG)
-#define S_ISREG(m) (((m)&S_IFMT) == S_IFREG)
+#define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
 #endif
 
 #include "crow/http_request.h"
@@ -118,9 +121,9 @@ namespace crow
 
         // clang-format off
         response() {}
-        explicit response(int code) : code(code) {}
-        response(std::string body) : body(std::move(body)) {}
-        response(int code, std::string body) : code(code), body(std::move(body)) {}
+        explicit response(int code_) : code(code_) {}
+        response(std::string body_) : body(std::move(body_)) {}
+        response(int code_, std::string body_) : code(code_), body(std::move(body_)) {}
         // clang-format on
         response(returnable&& value)
         {
@@ -132,14 +135,14 @@ namespace crow
             body = value.dump();
             set_header("Content-Type", value.content_type);
         }
-        response(int code, returnable& value):
-          code(code)
+        response(int code_, returnable& value):
+          code(code_)
         {
             body = value.dump();
             set_header("Content-Type", value.content_type);
         }
-        response(int code, returnable&& value):
-          code(code), body(value.dump())
+        response(int code_, returnable&& value):
+          code(code_), body(value.dump())
         {
             set_header("Content-Type", std::move(value.content_type));
         }
@@ -149,14 +152,14 @@ namespace crow
             *this = std::move(r);
         }
 
-        response(std::string contentType, std::string body):
-          body(std::move(body))
+        response(std::string contentType, std::string body_):
+          body(std::move(body_))
         {
             set_header("Content-Type", get_mime_type(contentType));
         }
 
-        response(int code, std::string contentType, std::string body):
-          code(code), body(std::move(body))
+        response(int code_, std::string contentType, std::string body_):
+          code(code_), body(std::move(body_))
         {
             set_header("Content-Type", get_mime_type(contentType));
         }
@@ -189,7 +192,6 @@ namespace crow
         }
 
         /// Return a "Temporary Redirect" response.
-
         ///
         /// Location can either be a route or a full URL.
         void redirect(const std::string& location)
@@ -199,7 +201,6 @@ namespace crow
         }
 
         /// Return a "Permanent Redirect" response.
-
         ///
         /// Location can either be a route or a full URL.
         void redirect_perm(const std::string& location)
@@ -209,7 +210,6 @@ namespace crow
         }
 
         /// Return a "Found (Moved Temporarily)" response.
-
         ///
         /// Location can either be a route or a full URL.
         void moved(const std::string& location)
@@ -219,7 +219,6 @@ namespace crow
         }
 
         /// Return a "Moved Permanently" response.
-
         ///
         /// Location can either be a route or a full URL.
         void moved_perm(const std::string& location)
@@ -270,11 +269,10 @@ namespace crow
         /// Check whether the response has a static file defined.
         bool is_static_type()
         {
-            return file_info.path.size();
+            return !!file_info.path.size();
         }
 
         /// This constains metadata (coming from the `stat` command) related to any static files associated with this response.
-
         ///
         /// Either a static file or a string body can be returned as 1 response.
         struct static_file_info

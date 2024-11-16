@@ -2,7 +2,7 @@ project(test_external_definition)
 
 add_executable(
   ${PROJECT_NAME}
-  main.cpp
+  ed_main.cpp
 )
 
 target_include_directories(

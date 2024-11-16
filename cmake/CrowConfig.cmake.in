@@ -58,3 +58,5 @@ if( NOT (_CROW_ILL STREQUAL "" ) )
     INTERFACE_LINK_LIBRARIES "${_CROW_ILL}"
   )
 endif()
+
+set(Crow_FOUND TRUE)

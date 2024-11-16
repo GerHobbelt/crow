@@ -2,10 +2,15 @@
 //#define CROW_STATIC_ENDPOINT "/alternative_endpoint/<path>"
 //#define CROW_DISABLE_STATIC_DIR
 #include "crow.h"
+#include "crow/monolithic_examples.h"
 
-int main()
+
+#if defined(BUILD_MONOLITHIC)
+#define main	crow_example_static_file_main
+#endif
+
+int main(void)
 {
-
     //Crow app initialization
     crow::SimpleApp app;
 
@@ -17,9 +22,7 @@ int main()
         res.end();
     });
 
-
     app.port(18080).run();
-
 
     return 0;
 }
