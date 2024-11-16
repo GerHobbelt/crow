@@ -347,14 +347,14 @@ namespace crow
         }
 
         /// \brief Set the server name
-        self_t& server_name(std::string server_name)
+        self_t& server_name(const std::string& server_name)
         {
             server_name_ = server_name;
             return *this;
         }
 
         /// \brief The IP address that Crow will handle requests on (default is 0.0.0.0)
-        self_t& bindaddr(std::string bindaddr)
+        self_t& bindaddr(const std::string& bindaddr)
         {
             bindaddr_ = bindaddr;
             return *this;
@@ -367,9 +367,11 @@ namespace crow
         }
 
         /// \brief Run the server on multiple threads using all available threads
-        self_t& multithreaded()
+        self_t& multithreaded(std::uint16_t threadCount = 0)
         {
-            return concurrency(std::thread::hardware_concurrency());
+            if (threadCount < 2)
+                threadCount = std::thread::hardware_concurrency();
+            return concurrency(threadCount);
         }
 
         /// \brief Run the server on multiple threads using a specific number

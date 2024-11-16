@@ -35,13 +35,13 @@ namespace crow
     public:
         virtual ~ILogHandler() = default;
 
-        virtual void log(std::string message, LogLevel level) = 0;
+        virtual void log(const std::string& message, LogLevel level) = 0;
     };
 
     class CerrLogHandler : public ILogHandler
     {
     public:
-        void log(std::string message, LogLevel level) override
+        void log(const std::string& message, LogLevel level) override
         {
             std::string prefix;
             switch (level)
