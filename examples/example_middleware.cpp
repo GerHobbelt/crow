@@ -1,4 +1,6 @@
 #include "crow.h"
+#include "crow/monolithic_examples.h"
+
 
 struct RequestLogger
 {
@@ -53,7 +55,13 @@ struct RequestAppend : crow::ILocalMiddleware
     }
 };
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main	crow_example_middleware_main
+#endif
+
+int main(void)
 {
     // ALL middleware (including per handler) is listed
     crow::App<RequestLogger, SecretContentGuard, RequestAppend> app;

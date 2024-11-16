@@ -5,6 +5,10 @@ function(add_warnings_optimizations target_name)
     target_compile_options(${target_name}
       PRIVATE
         /W4
+        /wd4244
+        /wd4245
+        /wd4267
+        /wd4100
         /permissive-
         $<$<CONFIG:RELEASE>:/O2 /Ob2>
         $<$<CONFIG:MINSIZEREL>:/O1 /Ob1>
@@ -20,6 +24,7 @@ function(add_warnings_optimizations target_name)
         -Wextra
         -Wpedantic
         -Wsuggest-override
+        -Wshadow
         $<$<CONFIG:RELEASE>:-O2>
         $<$<CONFIG:DEBUG>:-O0 -g>
     )
@@ -31,6 +36,7 @@ function(add_warnings_optimizations target_name)
         -Wextra
         -Wpedantic
         -Wsuggest-override
+        -Wshadow
         $<$<CONFIG:RELEASE>:-O2>
         $<$<CONFIG:DEBUG>:-O0 -g -pg>
     )
@@ -41,6 +47,7 @@ function(add_warnings_optimizations target_name)
         -Wextra
         -Wpedantic
         -Wsuggest-override
+        -Wshadow
         $<$<CONFIG:RELEASE>:-O2>
         $<$<CONFIG:DEBUG>:-O0 -g -p -pg>
     )

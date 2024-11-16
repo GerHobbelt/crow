@@ -1,5 +1,7 @@
 #pragma once
 
+#include "crow/settings.h"
+
 #include <vector>
 #include <string>
 #include <stdexcept>
@@ -8,13 +10,16 @@
 
 namespace crow
 {
-    const char cr = '\r';
-    const char lf = '\n';
-    const std::string crlf("\r\n");
+    inline const char cr = '\r';
+	inline const char lf = '\n';
+	inline const char* const crlf = "\r\n";
+	inline const char* const crlfcrlf = "\r\n\r\n";
+	inline const int crlf_size = 2;
+	inline const int crlfcrlf_size = 4;
 
     enum class HTTPMethod : char
     {
-#ifndef DELETE
+#if 0        // DELETE is defined in winnt.h and clashes with our enum below
         DELETE = 0,
         GET,
         HEAD,
@@ -76,8 +81,8 @@ namespace crow
         Lock,
         MkCol,
         Move,
-        Propfind,
-        Proppatch,
+        PropFind,
+        PropPatch,
         Search,
         Unlock,
         Bind,
@@ -157,7 +162,7 @@ namespace crow
     {
         if (CROW_LIKELY(method < HTTPMethod::InternalMethodCount))
         {
-            return method_strings[(unsigned char)method];
+            return method_strings[static_cast<unsigned int>(method)];
         }
         return "invalid";
     }
@@ -198,6 +203,7 @@ namespace crow
         UNSUPPORTED_MEDIA_TYPE        = 415,
         RANGE_NOT_SATISFIABLE         = 416,
         EXPECTATION_FAILED            = 417,
+		UNPROCESSED_ENTITY            = 422,
         PRECONDITION_REQUIRED         = 428,
         TOO_MANY_REQUESTS             = 429,
         UNAVAILABLE_FOR_LEGAL_REASONS = 451,
@@ -319,8 +325,8 @@ constexpr crow::HTTPMethod method_from_string(const char* str)
            crow::black_magic::is_equ_p(str, "LOCK", 4)      ? crow::HTTPMethod::Lock :
            crow::black_magic::is_equ_p(str, "MKCOL", 5)     ? crow::HTTPMethod::MkCol :
            crow::black_magic::is_equ_p(str, "MOVE", 4)      ? crow::HTTPMethod::Move :
-           crow::black_magic::is_equ_p(str, "PROPFIND", 8)  ? crow::HTTPMethod::Propfind :
-           crow::black_magic::is_equ_p(str, "PROPPATCH", 9) ? crow::HTTPMethod::Proppatch :
+           crow::black_magic::is_equ_p(str, "PROPFIND", 8)  ? crow::HTTPMethod::PropFind :
+           crow::black_magic::is_equ_p(str, "PROPPATCH", 9) ? crow::HTTPMethod::PropPatch :
            crow::black_magic::is_equ_p(str, "SEARCH", 6)    ? crow::HTTPMethod::Search :
            crow::black_magic::is_equ_p(str, "UNLOCK", 6)    ? crow::HTTPMethod::Unlock :
            crow::black_magic::is_equ_p(str, "BIND", 4)      ? crow::HTTPMethod::Bind :
@@ -344,7 +350,7 @@ constexpr crow::HTTPMethod method_from_string(const char* str)
            crow::black_magic::is_equ_p(str, "UNLINK", 6) ? crow::HTTPMethod::Unlink :
 
            crow::black_magic::is_equ_p(str, "SOURCE", 6) ? crow::HTTPMethod::Source :
-                                                           throw std::runtime_error("invalid http method");
+                                                           throw std::runtime_error("invalid HTTP method");
 }
 
 constexpr crow::HTTPMethod operator"" _method(const char* str, size_t /*len*/)

@@ -1,6 +1,12 @@
 #include "crow.h"
+#include "crow/monolithic_examples.h"
 
-int main()
+
+#if defined(BUILD_MONOLITHIC)
+#define main	crow_example_blueprint_main
+#endif
+
+int main(void)
 {
     crow::SimpleApp app;
 
@@ -34,4 +40,6 @@ int main()
     app.register_blueprint(bp);
 
     app.loglevel(crow::LogLevel::Debug).port(18080).run();
+
+	return EXIT_SUCCESS;
 }

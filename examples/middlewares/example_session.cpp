@@ -1,12 +1,19 @@
 #include "crow.h"
 #include "crow/middlewares/session.h"
+#include "crow/monolithic_examples.h"
 
-crow::response redirect()
+
+static crow::response redirect()
 {
     crow::response res;
     res.redirect("/");
     return res;
 }
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main	crow_example_session_main
+#endif
 
 int main()
 {

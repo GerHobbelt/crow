@@ -1,4 +1,5 @@
 #include "crow.h"
+#include "crow/monolithic_examples.h"
 
 class ExampleLogHandler : public crow::ILogHandler
 {
@@ -37,7 +38,13 @@ struct ExampleMiddleware
     }
 };
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main	crow_example_basic_main
+#endif
+
+int main(void)
 {
     crow::App<ExampleMiddleware> app;
 
@@ -155,7 +162,7 @@ int main()
           auto x = crow::json::load(req.body);
           if (!x)
               return crow::response(400);
-          int sum = x["a"].i() + x["b"].i();
+          int64_t sum = x["a"].i() + x["b"].i();
           std::ostringstream os;
           os << sum;
           return crow::response{os.str()};
@@ -222,4 +229,7 @@ int main()
     app.port(18080)
       .multithreaded()
       .run();
+
+	// when we get here, we may assume failure as the server code above should run indefinitely.
+	return EXIT_FAILURE;
 }

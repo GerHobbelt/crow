@@ -1,5 +1,7 @@
 #pragma once
 
+#include "crow/settings.h"
+
 #include <string>
 #include <unordered_map>
 #include <algorithm>
@@ -10,7 +12,6 @@
 namespace crow
 {
     /// A wrapper for `nodejs/http-parser`.
-
     ///
     /// Used to generate a \ref crow.request from the TCP socket buffer.
     template<typename Handler>
@@ -100,13 +101,15 @@ namespace crow
             return 0;
         }
         HTTPParser(Handler* handler):
+          http_parser(),
           handler_(handler)
         {
             http_parser_init(this);
         }
 
-        // return false on error
         /// Parse a buffer into the different sections of an HTTP request.
+		///
+        /// Return false on error
         bool feed(const char* buffer, int length)
         {
             if (message_complete)

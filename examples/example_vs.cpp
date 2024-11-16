@@ -1,4 +1,5 @@
 #include "crow.h"
+#include "crow/monolithic_examples.h"
 
 class ExampleLogHandler : public crow::ILogHandler
 {
@@ -37,7 +38,13 @@ struct ExampleMiddleware
     }
 };
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main	crow_example_vs_main
+#endif
+
+int main(void)
 {
     crow::App<ExampleMiddleware> app;
 
@@ -77,14 +84,31 @@ int main()
     });
 
     CROW_ROUTE(app, "/add/<int>/<int>")
-    ([](crow::response& res, int a, int b) {
+    ([](const crow::request& req, crow::response& res, int a, int b){
         std::ostringstream os;
-        os << a + b;
+        os << a+b;
         res.write(os.str());
         res.end();
     });
 
-    // Compile error with message "Handler type is mismatched with URL paramters"
+    CROW_ROUTE(app, "/plus/<int>/<int>")
+	([](int a, int b) {
+		std::ostringstream os;
+		os << a + b;
+		return crow::response(os.str());
+	});
+
+#if 0
+    CROW_ROUTE(app, "/sum/<int>/<int>")
+	([](crow::response& res, int a, int b) {
+		std::ostringstream os;
+		os << a + b;
+		res.write(os.str());
+		res.end();
+	});
+#endif
+
+	// Compile error with message "Handler type is mismatched with URL parameters"
     //CROW_ROUTE(app,"/another/<int>")
     //([](int a, int b){
     //return crow::response(500);
@@ -127,4 +151,7 @@ int main()
     app.port(18080)
       .multithreaded()
       .run();
+
+	// when we get here, we may assume failure as the server code above should run indefinitely.
+	return EXIT_FAILURE;
 }

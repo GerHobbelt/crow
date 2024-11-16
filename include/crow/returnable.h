@@ -1,5 +1,7 @@
 #pragma once
 
+#include "crow/settings.h"
+
 #include <string>
 
 namespace crow
@@ -14,6 +16,6 @@ namespace crow
           content_type{ctype}
         {}
 
-        virtual ~returnable(){};
+        virtual ~returnable(){}
     };
 } // namespace crow

@@ -1,7 +1,13 @@
 #include "crow.h"
 #include "crow/compression.h"
+#include "crow/monolithic_examples.h"
 
-int main()
+
+#if defined(BUILD_MONOLITHIC)
+#define main	crow_example_compression_main
+#endif
+
+int main(void)
 {
     crow::SimpleApp app;
     //crow::App<crow::CompressionGzip> app;
@@ -26,4 +32,7 @@ int main()
       .loglevel(crow::LogLevel::Debug)
       .multithreaded()
       .run();
+
+	// when we get here, we may assume failure as the server code above should run indefinitely.
+	return EXIT_FAILURE;
 }

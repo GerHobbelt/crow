@@ -1,4 +1,10 @@
 #include "crow.h"
+#include "crow/monolithic_examples.h"
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main	crow_example_file_upload_main
+#endif
 
 int main()
 {

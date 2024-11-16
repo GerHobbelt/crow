@@ -1,4 +1,6 @@
 #include "crow_all.h"
+#include "crow/monolithic_examples.h"
+
 
 class ExampleLogHandler : public crow::ILogHandler
 {
@@ -9,7 +11,13 @@ public:
     }
 };
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main	crow_example_with_all_main
+#endif
+
+int main(void)
 {
     crow::SimpleApp app;
 
@@ -29,6 +37,78 @@ int main()
         crow::json::wvalue x({{"message", "Hello, World!"}});
         x["message2"] = "Hello, World.. Again!";
         return x;
+    });
+
+    CROW_ROUTE(app, "/json-initializer-list-constructor01")
+    ([] {
+        return crow::json::wvalue({
+          {"first", "Hello world!"},                     /* stores a char const* hence a json::type::String */
+        });
+    });
+
+    CROW_ROUTE(app, "/json-initializer-list-constructor02")
+    ([] {
+        return crow::json::wvalue({
+          {"second", std::string("How are you today?")}, /* stores a std::string hence a json::type::String. */
+        });
+    });
+
+    CROW_ROUTE(app, "/json-initializer-list-constructor03")
+    ([] {
+        return crow::json::wvalue({
+          {"third", 54},                                 /* stores an int (as 54 is an int literal) hence a std::int64_t. */
+          {"fourth", 54l},                               /* stores a long (as 54l is a long literal) hence a std::int64_t. */
+          {"fifth", 54u},                                /* stores an unsigned int (as 54u is a unsigned int literal) hence a std::uint64_t. */
+          {"sixth", 54ul},                               /* stores an unsigned long (as 54ul is an unsigned long literal) hence a std::uint64_t. */
+        });
+    });
+
+    CROW_ROUTE(app, "/json-initializer-list-constructor04")
+    ([] {
+        return crow::json::wvalue({
+          {"seventh", 2.f},                              /* stores a float (as 2.f is a float literal) hence a double. */
+          {"eighth", 2.},                                /* stores a double (as 2. is a double literal) hence a double. */
+        });
+    });
+
+    CROW_ROUTE(app, "/json-initializer-list-constructor05")
+    ([] {
+        return crow::json::wvalue({
+          {"ninth", nullptr},                            /* stores a std::nullptr hence json::type::Null . */
+        });
+    });
+
+    CROW_ROUTE(app, "/json-initializer-list-constructor06")
+    ([] {
+        return crow::json::wvalue({
+          {"tenth", true}                                /* stores a bool hence json::type::True . */
+        });
+    });
+
+    CROW_ROUTE(app, "/json-initializer-list-constructor10")
+    ([] {
+        return crow::json::wvalue({
+          {"third", 54},                                 /* stores an int (as 54 is an int literal) hence a std::int64_t. */
+          {"fourth", 54l},                               /* stores a long (as 54l is a long literal) hence a std::int64_t. */
+          {"seventh", 2.f},                              /* stores a float (as 2.f is a float literal) hence a double. */
+          {"eighth", 2.},                                /* stores a double (as 2. is a double literal) hence a double. */
+          {"ninth", nullptr},                            /* stores a std::nullptr hence json::type::Null . */
+          {"tenth", true}                                /* stores a bool hence json::type::True . */
+        });
+    });
+
+    CROW_ROUTE(app, "/json-initializer-list-constructor11")
+    ([] {
+        return crow::json::wvalue({
+          {"first", "Hello world!"},                     /* stores a char const* hence a json::type::String */
+          {"second", std::string("How are you today?")}, /* stores a std::string hence a json::type::String. */
+          {"third", 54},                                 /* stores an int (as 54 is an int literal) hence a std::int64_t. */
+          {"fifth", 54u},                                /* stores an unsigned int (as 54u is a unsigned int literal) hence a std::uint64_t. */
+          {"seventh", 2.f},                              /* stores a float (as 2.f is a float literal) hence a double. */
+          {"eighth", 2.},                                /* stores a double (as 2. is a double literal) hence a double. */
+          {"ninth", nullptr},                            /* stores a std::nullptr hence json::type::Null . */
+          {"tenth", true}                                /* stores a bool hence json::type::True . */
+        });
     });
 
     CROW_ROUTE(app, "/json-initializer-list-constructor")
@@ -64,7 +144,7 @@ int main()
         return crow::response(os.str());
     });
 
-    // example which uses only response as a paramter without
+    // example which uses only response as a parameter without
     // request being a parameter.
     CROW_ROUTE(app, "/add/<int>/<int>")
     ([](crow::response& res, int a, int b) {
@@ -74,7 +154,7 @@ int main()
         res.end();
     });
 
-    // Compile error with message "Handler type is mismatched with URL paramters"
+    // Compile error with message "Handler type is mismatched with URL parameters"
     //CROW_ROUTE(app,"/another/<int>")
     //([](int a, int b){
     //return crow::response(500);
@@ -119,4 +199,7 @@ int main()
       .server_name("CrowCpp")
       .multithreaded()
       .run();
+
+	// when we get here, we may assume failure as the server code above should run indefinitely.
+	return EXIT_FAILURE;
 }
