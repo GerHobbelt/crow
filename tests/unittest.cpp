@@ -557,7 +557,11 @@ TEST_CASE("http_method")
         req.method = "OPTIONS"_method;
         app.handle_full(req, res);
 
+#ifdef CROW_RETURNS_OK_ON_HTTP_OPTIONS_REQUEST
+        CHECK(200 == res.code);
+#else
         CHECK(204 == res.code);
+#endif
         CHECK("OPTIONS, HEAD, GET, POST" == res.get_header_value("Allow"));
     }
 
@@ -580,7 +584,11 @@ TEST_CASE("http_method")
         req.method = "OPTIONS"_method;
         app.handle_full(req, res);
 
+#ifdef CROW_RETURNS_OK_ON_HTTP_OPTIONS_REQUEST
+        CHECK(200 == res.code);
+#else
         CHECK(204 == res.code);
+#endif
         CHECK("OPTIONS, HEAD, GET, POST, PATCH, PURGE" == res.get_header_value("Allow"));
     }
 
@@ -592,7 +600,11 @@ TEST_CASE("http_method")
         req.method = "OPTIONS"_method;
         app.handle_full(req, res);
 
+#ifdef CROW_RETURNS_OK_ON_HTTP_OPTIONS_REQUEST
+        CHECK(200 == res.code);
+#else
         CHECK(204 == res.code);
+#endif
         CHECK("OPTIONS, HEAD" == res.get_header_value("Allow"));
     }
 } // http_method
