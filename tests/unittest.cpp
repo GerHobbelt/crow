@@ -35,6 +35,7 @@ using asio_error_code = asio::error_code;
 
 #define LOCALHOST_ADDRESS "127.0.0.1"
 
+/** simple http client class for making client requests */
 class HttpClient
 {
 private:
@@ -42,24 +43,29 @@ private:
     asio::ip::tcp::socket c;
 
 public:
-    HttpClient(std::string const& adress, uint16_t port):
+    /** construct an instance by address and port */
+    HttpClient(std::string const& address, uint16_t port):
       c(is)
     {
-        c.connect(asio::ip::tcp::endpoint(
-          asio::ip::address::from_string(adress), port));
+        c.connect(asio::ip::tcp::endpoint( asio::ip::make_address(address),
+                                           port));
     }
 
-    void send(const std::string& sendmsg)
+    /** sends a request string through the socket */
+    void send(const std::string& msg)
     {
-        c.send(asio::buffer(sendmsg));
+        c.send(asio::buffer(msg));
     }
 
-    void send(const char* const buf, size_t buf_size)
+    /** sends a request string through the socket */
+    void send(const char* const msg, size_t msg_size)
     {
-        c.send(asio::buffer(buf, buf_size));
+        c.send(asio::buffer(msg, msg_size));
     }
 
 
+    /** method shall be called after sending a request with send
+     * @returns the received response string */
     std::string receive()
     {
         char buf[2048];
@@ -68,6 +74,8 @@ public:
         return rval;
     }
 
+    /** static method for making a request
+     * @returns the received response string */
     static std::string request(const std::string& address,
                                uint16_t port,
                                const std::string& sendmsg)
@@ -77,6 +85,7 @@ public:
         return c.receive();
     }
 };
+
 TEST_CASE("Rule")
 {
     TaggedRule<> r("/http/");
@@ -630,13 +639,10 @@ TEST_CASE("server_handling_error_request")
     // auto _ = async(launch::async, [&]{server.run();});
     auto _ = app.bindaddr(LOCALHOST_ADDRESS).port(45451).run_async();
     app.wait_for_server_start();
-    std::string sendmsg = "POX";
-    HttpClient c(LOCALHOST_ADDRESS, 45451);
-    c.send(sendmsg);
 
     try
     {
-        auto resp = c.receive();
+        auto resp = HttpClient::request(LOCALHOST_ADDRESS, 45451, "POX");
         FAIL_CHECK();
     }
     catch (std::exception& e)
@@ -674,12 +680,11 @@ TEST_CASE("server_handling_error_request_http_version")
     auto _ = app.bindaddr(LOCALHOST_ADDRESS).port(45451).run_async();
     app.wait_for_server_start();
     {
-        HttpClient c(LOCALHOST_ADDRESS, 45451);
-        c.send("POST /\r\nContent-Length:3\r\nX-HeaderTest: 123\r\n\r\nA=B\r\n");
-
         try
         {
-            auto resp = c.receive();
+            auto resp = HttpClient::request(LOCALHOST_ADDRESS,
+                                                   45451,
+                                                   "POST /\r\nContent-Length:3\r\nX-HeaderTest: 123\r\n\r\nA=B\r\n");
             FAIL_CHECK();
         }
         catch (std::exception& e)
@@ -710,10 +715,8 @@ TEST_CASE("multi_server")
     std::string sendmsg =
       "POST / HTTP/1.0\r\nContent-Length:3\r\nX-HeaderTest: 123\r\n\r\nA=B\r\n";
     {
-        HttpClient c(LOCALHOST_ADDRESS, 45451);
-        c.send(sendmsg);
-
-        auto resp = c.receive();
+        auto resp = HttpClient::request(LOCALHOST_ADDRESS, 45451,
+                                        "POST / HTTP/1.0\r\nContent-Length:3\r\nX-HeaderTest: 123\r\n\r\nA=B\r\n");
         CHECK('A' == resp.at(resp.length() - 1));
     }
 
@@ -1653,10 +1656,9 @@ TEST_CASE("middleware_context")
 
     auto _ = app.bindaddr(LOCALHOST_ADDRESS).port(45451).run_async();
     app.wait_for_server_start();
-    std::string sendmsg = "GET /\r\n\r\n";
     {
         auto resp = HttpClient::request(LOCALHOST_ADDRESS, 45451,
-                                        sendmsg);
+                                        "GET /\r\n\r\n");
     }
     {
         auto& out = test_middleware_context_vector;
