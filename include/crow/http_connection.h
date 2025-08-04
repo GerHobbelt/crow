@@ -71,6 +71,7 @@ namespace crow
           res_stream_threshold_(handler->stream_threshold()),
           queue_length_(queue_length)
         {
+            queue_length_++;
 #ifdef CROW_ENABLE_DEBUG
             connectionCount++;
             CROW_LOG_DEBUG << "Connection (" << this << ") allocated, total: " << connectionCount;
@@ -79,6 +80,7 @@ namespace crow
 
         ~Connection()
         {
+            queue_length_--;
 #ifdef CROW_ENABLE_DEBUG
             connectionCount--;
             CROW_LOG_DEBUG << "Connection (" << this << ") freed, total: " << connectionCount;

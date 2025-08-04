@@ -53,14 +53,14 @@ namespace crow // NOTE: Already documented in "crow/app.h"
              uint16_t concurrency = 1,
              uint8_t timeout = 5,
              typename Adaptor::context* adaptor_ctx = nullptr):
+          concurrency_(concurrency),
+          task_queue_length_pool_(concurrency_ - 1),
           acceptor_(io_context_),
           signals_(io_context_),
           tick_timer_(io_context_),
           handler_(handler),
-          concurrency_(concurrency),
           timeout_(timeout),
           server_name_(server_name),
-          task_queue_length_pool_(concurrency_ - 1),
           middlewares_(middlewares),
           adaptor_ctx_(adaptor_ctx)
         {
@@ -71,14 +71,21 @@ namespace crow // NOTE: Already documented in "crow/app.h"
 
             error_code ec;
 
-            acceptor_.open(endpoint.protocol(), ec);
+            acceptor_.raw_acceptor().open(endpoint.protocol(), ec);
             if (ec) {
                 CROW_LOG_ERROR << "Failed to open acceptor: " << ec.message();
                 startup_failed_ = true;
                 return;
             }
 
-            acceptor_.bind(endpoint, ec);
+            acceptor_.raw_acceptor().set_option(Acceptor::reuse_address_option(), ec);
+            if (ec) {
+                CROW_LOG_ERROR << "Failed to set socket option: " << ec.message();
+                startup_failed_ = true;
+                return;
+            }
+
+            acceptor_.raw_acceptor().bind(endpoint, ec);
             if (ec) {
                 CROW_LOG_ERROR << "Failed to bind to " << acceptor_.address()
                             << ":" << acceptor_.port() << " - " << ec.message();
@@ -86,7 +93,7 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                 return;
             }
 
-            acceptor_.listen(tcp::acceptor::max_listen_connections, ec);
+            acceptor_.raw_acceptor().listen(tcp::acceptor::max_listen_connections, ec);
             if (ec) {
                 CROW_LOG_ERROR << "Failed to listen on port: " << ec.message();
                 startup_failed_ = true;
@@ -237,10 +244,15 @@ namespace crow // NOTE: Already documented in "crow/app.h"
             // Explicitly close the acceptor
             // else asio will throw an exception (linux only), when trying to start server again:
             // what():  bind: Address already in use
-            if (acceptor_.is_open())
+            if (acceptor_.raw_acceptor().is_open())
             {
                 CROW_LOG_INFO << "Closing acceptor. " << &acceptor_;
-                acceptor_.close();
+                error_code ec;
+                acceptor_.raw_acceptor().close(ec);
+                if (ec)
+                {
+                    CROW_LOG_WARNING << "Failed to close acceptor: " << ec.message();
+                }
             }
 
             for (auto& io_context : io_context_pool_)
@@ -256,6 +268,7 @@ namespace crow // NOTE: Already documented in "crow/app.h"
             io_context_.stop(); // Close main io_service
         }
 
+        
         uint16_t port() const {
             return acceptor_.local_endpoint().port();
         }
@@ -319,27 +332,21 @@ namespace crow // NOTE: Already documented in "crow/app.h"
             {
                 size_t context_idx = pick_io_context_idx();
                 asio::io_context& ic = *io_context_pool_[context_idx];
-                task_queue_length_pool_[context_idx]++;
-                CROW_LOG_DEBUG << &ic << " {" << context_idx << "} queue length: " << task_queue_length_pool_[context_idx];
-
                 auto p = std::make_shared<Connection<Adaptor, Handler, Middlewares...>>(
-                  ic, handler_, server_name_, middlewares_,
-                  get_cached_date_str_pool_[context_idx], *task_timer_pool_[context_idx], adaptor_ctx_, task_queue_length_pool_[context_idx]);
+                    ic, handler_, server_name_, middlewares_,
+                    get_cached_date_str_pool_[context_idx], *task_timer_pool_[context_idx], adaptor_ctx_, task_queue_length_pool_[context_idx]);
+                    
+                CROW_LOG_DEBUG << &ic << " {" << context_idx << "} queue length: " << task_queue_length_pool_[context_idx];
 
                 acceptor_.raw_acceptor().async_accept(
                   p->socket(),
-                  [this, p, &ic, context_idx](error_code ec) {
+                  [this, p, &ic](error_code ec) {
                       if (!ec)
                       {
                           asio::post(ic,
                             [p] {
                                 p->start();
                             });
-                      }
-                      else
-                      {
-                          task_queue_length_pool_[context_idx]--;
-                          CROW_LOG_DEBUG << &ic << " {" << context_idx << "} queue length: " << task_queue_length_pool_[context_idx];
                       }
                       do_accept();
                   });
@@ -355,6 +362,8 @@ namespace crow // NOTE: Already documented in "crow/app.h"
         }
 
     private:
+        uint16_t concurrency_{2};
+        std::vector<std::atomic<unsigned int>> task_queue_length_pool_;
         std::vector<std::unique_ptr<asio::io_context>> io_context_pool_;
         asio::io_context io_context_;
         std::vector<detail::task_timer*> task_timer_pool_;
@@ -371,11 +380,9 @@ namespace crow // NOTE: Already documented in "crow/app.h"
         asio::basic_waitable_timer<std::chrono::high_resolution_clock> tick_timer_;
 
         Handler* handler_;
-        unsigned int concurrency_{2};
         std::uint8_t timeout_;
         std::string server_name_;
         bool use_unix_;
-        std::vector<std::atomic<unsigned int>> task_queue_length_pool_;
 
         std::chrono::milliseconds tick_interval_;
         std::function<void()> tick_function_;
