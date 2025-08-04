@@ -60,6 +60,10 @@ cmake-build-debug
 site
 venv
 
+#Bazel
+bazel-*
+MODULE.bazel.lock
+
 # CMake build directory
 /b/
 

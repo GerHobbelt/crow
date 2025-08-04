@@ -9,6 +9,8 @@ project(Crow
 	VERSION 1.1.1
 )
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Make sure Findasio.cmake module is found
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -85,7 +87,8 @@ else()
 		INTERFACE
 			asio::asio
 	)
-endif()
+	target_compile_definitions(Crow INTERFACE ASIO_NO_DEPRECATED)
+      endif()
 
 target_compile_definitions(Crow INTERFACE "")
 
