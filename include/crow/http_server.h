@@ -44,8 +44,14 @@ namespace crow // NOTE: Already documented in "crow/app.h"
     class Server
     {
     public:
-        Server(Handler* handler, const tcp::endpoint& endpoint, std::string server_name = std::string("Crow/") + VERSION, std::tuple<Middlewares...>* middlewares = nullptr, uint16_t concurrency = 1, uint8_t timeout = 5, typename Adaptor::context* adaptor_ctx = nullptr):
-          acceptor_(io_context_, endpoint),
+      Server(Handler* handler,
+             const tcp::endpoint& endpoint,
+             std::string server_name = std::string("Crow/") + VERSION,
+             std::tuple<Middlewares...>* middlewares = nullptr,
+             uint16_t concurrency = 1,
+             uint8_t timeout = 5,
+             typename Adaptor::context* adaptor_ctx = nullptr):
+          acceptor_(io_context_,endpoint),
           signals_(io_context_),
           tick_timer_(io_context_),
           handler_(handler),
