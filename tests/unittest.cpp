@@ -1437,6 +1437,25 @@ TEST_CASE("json_list")
     CHECK("[5,6,7,8,4,3,2,1]" == x.dump());
 } // json_list
 
+static crow::json::wvalue getValue(int i){
+     return crow::json::wvalue(i);
+}
+
+TEST_CASE("json Incorrect move of wvalue class #953")
+{
+    {
+        crow::json::wvalue int_value(-500);
+        crow::json::wvalue copy_value(std::move(int_value));
+
+        REQUIRE(copy_value.dump()=="-500");
+    }
+    {
+         crow::json::wvalue json;
+         json["int_value"] = getValue(-500);
+         REQUIRE(json["int_value"].dump()=="-500");
+    }
+}
+
 TEST_CASE("template_basic")
 {
     auto t = crow::mustache::compile(R"---(attack of {{name}})---");
@@ -1999,6 +2018,10 @@ TEST_CASE("middleware_cors")
         return "-";
     });
 
+    CROW_ROUTE(app, "/auth-origin").methods(crow::HTTPMethod::Post)([&](const request&) {
+        return "-";
+    });
+
     CROW_ROUTE(app, "/expose")
     ([&](const request&) {
         return "-";
@@ -2026,8 +2049,14 @@ TEST_CASE("middleware_cors")
     CHECK(resp.find("Access-Control-Allow-Origin: test.test") != std::string::npos);
 
     resp = HttpClient::request(LOCALHOST_ADDRESS, port,
-                                    "GET /auth-origin\r\nOrigin: test-client\r\n\r\n");
+                               "GET /auth-origin\r\nOrigin: test-client\r\n\r\n");
     CHECK(resp.find("Access-Control-Allow-Origin: test-client") != std::string::npos);
+    CHECK(resp.find("Access-Control-Allow-Credentials: true") != std::string::npos);
+
+    resp = HttpClient::request(LOCALHOST_ADDRESS, port,
+                               "OPTIONS /auth-origin / HTTP/1.1 \r\n\r\n");
+    CHECK(resp.find("Access-Control-Allow-Origin: *") != std::string::npos);
+    CHECK(resp.find("Access-Control-Allow-Credentials: true") == std::string::npos);
 
     resp = HttpClient::request(LOCALHOST_ADDRESS, port,
                                "GET /expose\r\n\r\n");
@@ -2163,15 +2192,21 @@ TEST_CASE("middleware_session")
 TEST_CASE("bug_quick_repeated_request")
 {
     SimpleApp app;
+    std::uint8_t explicitTimeout = 200;
+    app.timeout(explicitTimeout);
 
     CROW_ROUTE(app, "/")
     ([&] {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         return "hello";
     });
 
     auto _ = app.bindaddr(LOCALHOST_ADDRESS).port(45451).run_async();
     app.wait_for_server_start();
     std::string sendmsg = "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n";
+
+    auto start = std::chrono::high_resolution_clock::now();
+
     asio::io_context ic;
     {
         std::vector<std::future<void>> v;
@@ -2190,6 +2225,12 @@ TEST_CASE("bug_quick_repeated_request")
             }));
         }
     }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::seconds testDuration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+
+    CHECK(testDuration.count() < explicitTimeout);
+
     app.stop();
 } // bug_quick_repeated_request
 
@@ -3489,8 +3530,8 @@ TEST_CASE("zlib_compression")
 
             std::string response_deflate(buf_deflate);
             std::string response_gzip(buf_gzip);
-            response_deflate = response_deflate.substr(98);
-            response_gzip = response_gzip.substr(98);
+            response_deflate = response_deflate.substr(response_deflate.find("\r\n\r\n") + 4);
+            response_gzip = response_gzip.substr(response_gzip.find("\r\n\r\n") + 4);
 
             socket[0].close();
             socket[1].close();
@@ -3511,8 +3552,8 @@ TEST_CASE("zlib_compression")
 
             std::string response_deflate(buf_deflate);
             std::string response_gzip(buf_gzip);
-            response_deflate = response_deflate.substr(98);
-            response_gzip = response_gzip.substr(98);
+            response_deflate = response_deflate.substr(response_deflate.find("\r\n\r\n") + 4);
+            response_gzip = response_gzip.substr(response_gzip.find("\r\n\r\n") + 4);
 
             socket[0].close();
             socket[1].close();
