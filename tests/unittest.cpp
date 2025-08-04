@@ -1112,8 +1112,8 @@ TEST_CASE("json_copy_r_to_w_to_w_to_r")
       json::load(w.dump()); // why no copy-ctor wvalue -> rvalue?
     CHECK(2 == x["smallint"]);
     CHECK(2147483647 == x["bigint"]);
-    CHECK(23.43 == x["fp"]);
-    CHECK(23.43 == x["fpsc"]);
+    REQUIRE_THAT(23.43, Catch::Matchers::WithinAbs(x["fp"].d(), 1e-9));
+    REQUIRE_THAT(23.43, Catch::Matchers::WithinAbs(x["fpsc"].d(), 1e-9));
     CHECK("a string" == x["str"]);
     CHECK(x["trueval"].b());
     REQUIRE_FALSE(x["falseval"].b());
@@ -2298,6 +2298,7 @@ TEST_CASE("simple_url_params")
     // check multiple value, multiple types
     HttpClient::request(LOCALHOST_ADDRESS, 45451,
                         "GET /params?int=100&double=123.45&boolean=1\r\n\r\n");
+    
     CHECK(utility::lexical_cast<int>(last_url_params.get("int")) == 100);
     REQUIRE_THAT(123.45, Catch::Matchers::WithinAbs(utility::lexical_cast<double>(last_url_params.get("double")), 1e-9));
     CHECK(utility::lexical_cast<bool>(last_url_params.get("boolean")));

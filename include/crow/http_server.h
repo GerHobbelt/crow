@@ -50,7 +50,7 @@ namespace crow // NOTE: Already documented in "crow/app.h"
              typename Acceptor::endpoint endpoint, 
              std::string server_name = std::string("Crow/") + VERSION,
              std::tuple<Middlewares...>* middlewares = nullptr,
-             uint16_t concurrency = 1,
+             unsigned int concurrency = 1,
              uint8_t timeout = 5,
              typename Adaptor::context* adaptor_ctx = nullptr):
           concurrency_(concurrency),
@@ -362,7 +362,7 @@ namespace crow // NOTE: Already documented in "crow/app.h"
         }
 
     private:
-        uint16_t concurrency_{2};
+        unsigned int concurrency_{2};
         std::vector<std::atomic<unsigned int>> task_queue_length_pool_;
         std::vector<std::unique_ptr<asio::io_context>> io_context_pool_;
         asio::io_context io_context_;
