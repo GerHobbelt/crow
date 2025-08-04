@@ -41,37 +41,45 @@ namespace crow
     class CerrLogHandler : public ILogHandler
     {
     public:
-        void log(const std::string& message, LogLevel level) override
+        void log(const std::string &message, LogLevel level) override
         {
-            std::string prefix;
+            std::string log_msg;
+            log_msg.reserve(message.length() + 1+32+3+8+2);
+#if !defined(CROW_DISABLE_LOG_TIMESTAMP)
+            log_msg
+                .append("(")
+                .append(timestamp())
+                .append(") ");
+#endif				
+#if !defined(CROW_DISABLE_LOG_PREFIX)
+            log_msg
+                .append("[");
+
             switch (level)
             {
                 case LogLevel::Debug:
-                    prefix = "DEBUG   ";
+                    log_msg.append("DEBUG   ");
                     break;
                 case LogLevel::Info:
-                    prefix = "INFO    ";
+                    log_msg.append("INFO    ");
                     break;
                 case LogLevel::Warning:
-                    prefix = "WARNING ";
+                    log_msg.append("WARNING ");
                     break;
                 case LogLevel::Error:
-                    prefix = "ERROR   ";
+                    log_msg.append("ERROR   ");
                     break;
                 case LogLevel::Critical:
-                    prefix = "CRITICAL";
+                    log_msg.append("CRITICAL");
                     break;
             }
 
-#if defined(CROW_DISABLE_LOG_TIMESTAMP) && !defined(CROW_DISABLE_LOG_PREFIX)
-            std::cerr << std::string("[") + prefix + std::string("] ") + message << std::endl;
-#elif !defined(CROW_DISABLE_LOG_TIMESTAMP) && defined(CROW_DISABLE_LOG_PREFIX)
-            std::cerr << std::string("(") + timestamp() + std::string(") ") message << std::endl;
-#elif !defined(CROW_DISABLE_LOG_TIMESTAMP) && !defined(CROW_DISABLE_LOG_PREFIX)
-            std::cerr << std::string("(") + timestamp() + std::string(") [") + prefix + std::string("] ") + message << std::endl;
-#else // defined(CROW_DISABLE_LOG_TIMESTAMP) && defined(CROW_DISABLE_LOG_PREFIX)
-            std::cerr << message << std::endl;
+            log_msg.append("] ");
 #endif
+            log_msg
+            .append(message);
+
+            std::cerr << log_msg << std::endl;
         }
 
     private:
