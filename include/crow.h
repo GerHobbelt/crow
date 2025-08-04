@@ -5,6 +5,7 @@
 #include "crow/ci_map.h"
 #include "crow/TinySHA1.hpp"
 #include "crow/socket_adaptors.h"
+#include "crow/socket_acceptors.h"
 #include "crow/json.h"
 #include "crow/mustache.h"
 #include "crow/logging.h"
