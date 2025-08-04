@@ -762,8 +762,8 @@ namespace crow // NOTE: Already documented in "crow/app.h"
                     nt_ = num_type::Unsigned_integer;
             }
 
-            mutable char* start_;
-            mutable char* end_;
+            mutable char* start_{nullptr};
+            mutable char* end_{nullptr};
             detail::r_string key_;
             std::unique_ptr<rvalue[]> l_;
             uint32_t lsize_;
